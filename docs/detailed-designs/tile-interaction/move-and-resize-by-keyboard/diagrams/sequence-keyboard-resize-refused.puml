@@ -38,6 +38,7 @@ alt the candidate is free and differs from the current span
   grid -> canplace : Test the candidate
   canplace --> grid : Free
   grid -> grid : Adopt the span and emit layoutChange once
+  grid -> dom : Scroll the tile into view per L2-027
   grid -> announce : Compose the accepted announcement
   announce --> grid : Tile name with its new column and row span
 else the candidate is blocked, or the clamp left it unchanged

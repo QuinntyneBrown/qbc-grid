@@ -40,11 +40,13 @@ grid -> canplace : Test the candidate against every other tile
 canplace --> grid : Free
 grid -> grid : Open the settle window, showing the overlay per L2-019
 grid -> grid : Adopt the candidate and keep focus on the tile per L2-027
+grid -> dom : Scroll the tile into view by the smallest amount that works per L2-027
+note over grid, dom : A transform is not a focus change, so without this the focused tile slides out of view
 grid -> dashboard : Emit layoutChange exactly once
 grid -> announce : Compose the accepted announcement per L2-029
 announce --> grid : Tile name with its one-based column and row
 grid -> dom : Write the text into the polite live region
 dom -> at : Announce the new position
 grid -> grid : Close the settle window, hiding the overlay
-dom --> actor : Present the moved tile, still focused
+dom --> actor : Present the moved tile, still focused and still in view
 @enduml

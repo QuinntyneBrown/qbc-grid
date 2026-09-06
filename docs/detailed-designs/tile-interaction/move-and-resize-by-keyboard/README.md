@@ -108,7 +108,8 @@ whether it stands. `accessibleNameOf` and `announcementFor` turn the outcome int
 
 ### Behaviour — move a focused tile with an arrow key
 
-One press is one complete command: map, validate, commit, emit, announce, and keep focus.
+One press is one complete command: map, validate, commit, scroll the tile back into
+view, emit, announce, and keep focus.
 
 ![Sequence diagram for moving a focused tile with an arrow key](diagrams/sequence-keyboard-move.png)
 
