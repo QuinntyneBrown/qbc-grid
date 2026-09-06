@@ -138,12 +138,19 @@ breaks on a wording change or a restyle.
 | `data-qbc-mode-toggle` | the demonstration page | switching between `live` and `edit` |
 | `data-qbc-add-tile` | the demonstration page | adding a tile through the grid's `addTile` |
 | `data-qbc-remove-tile` | each tile's projected content | removing that tile by id |
+| `data-qbc-lock-toggle` | each tile's projected content | locking and unlocking that tile |
 | `data-qbc-mutate-layout` | the demonstration page | mutating the last emitted layout in place |
 
 The remove control sits inside a tile's projected content rather than on the tile element,
 because the grid renders no chrome of its own. It earns its keep twice: it is how `L2-022`
 removes a tile, and it is the button inside a tile that `L2-009` requires to stay clickable
 in `edit` mode, so the arrangement under test is the one an operator would meet.
+
+The lock toggle is there because `L2-008` asks what happens when a tile *is unlocked while
+the grid is in edit mode* — a transition, not a state, so a fixture that starts unlocked
+cannot answer it. A control expressed in a criterion's *given* rather than its *when* is
+easy to miss: the sweep that found the other four searched for what the host does, and this
+one is written as something that happens to a tile.
 
 `L2-007` asks for the mode to change while a drag is in progress, which pointer capture
 makes into a question of how. A dragging pointer is routed to the tile for as long as the

@@ -23,6 +23,11 @@ The lock is a data property rather than component state, so it round-trips with 
 and survives a save and restore. Clearing it takes effect immediately: the tile becomes
 draggable and focusable on the next render, with no reload.
 
+That last guarantee is about a transition rather than a state, so proving it needs a tile
+that changes. The demonstration page carries a lock toggle inside each tile's projected
+content, beside the remove control and for the same reason — the grid renders no chrome of
+its own — and the [testing seam](../../README.md#the-testing-seam) names its hook.
+
 ## Description
 
 Locking touches one field and three decision points, all of which read that field rather
