@@ -139,6 +139,7 @@ export class Dashboard {
 
 ```css
 .widget {
+  color: var(--qbc-color-accent);
   padding: var(--qbc-space-3);
 }
 ```
