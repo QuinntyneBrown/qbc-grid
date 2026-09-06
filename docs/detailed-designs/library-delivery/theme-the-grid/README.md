@@ -131,6 +131,20 @@ routes that differ in nothing except which stylesheets the document carries:
 | `/tokens/absent` | no token file | that each fallback equals the token it stands in for |
 | `/tokens/overridden` | the token file and an override sheet | that no painted value is a literal |
 
+A route the application does not recognise fails, and does not reach a wildcard that
+redirects to `/`. That redirect is the ordinary Angular idiom and it would be quietly
+disastrous here: a mistyped `/tokens/absent` would serve the themed dashboard, the
+comparison in `L2-034` would measure the reference render against itself, and the criterion
+that exists to catch a drifted fallback would pass without comparing anything. A criterion
+that cannot fail has stopped being a test, and it would go on reporting success for as long
+as the typo survived.
+
+That is the same rule the layout fixtures follow, and it is worth holding as one rule rather
+than two: a scaffolding selector that names a configuration fails on a name it does not know.
+Only the values a criterion deliberately supplies as wrong — `columns` of 0, `rowHeight` of
+`NaN` — travel through untouched, because there the wrongness is the subject of the test
+rather than a mistake in writing it.
+
 Routes rather than a query parameter, because the alternative is attaching or detaching a
 stylesheet after load, which leaves a window in which the page paints with values it is
 about to replace. A comparison test would race that window and fail intermittently, which is
