@@ -62,9 +62,18 @@ announcement.
   keys do anything at all — the keyboard path is present and undiscoverable, which for the
   operator it exists to serve is close to absent. One shared element rather than one per
   tile, because sixty copies of the same sentence is sixty nodes carrying no extra meaning.
-- **`GridComponent.announcement`** — signal bound into a polite `aria-live` region in the
-  grid's template. Writing text into an existing region, rather than inserting one, is what
-  makes the announcement reliable.
+- **`GridComponent.announcement`** — signal bound into a pair of polite `aria-live` regions
+  in the grid's template, written alternately. Writing text into an existing region, rather
+  than inserting one, is what makes the announcement reliable; alternating between two is
+  what makes a repeat audible.
+
+  A live region speaks when its contents change, so writing the same sentence twice is not an
+  event and says nothing. An operator at column 0 presses the left arrow, hears that the move
+  was blocked, presses it again to be sure, and hears silence — which reads as the second
+  press having worked, the opposite of what happened. Refusals are the announcements most
+  likely to repeat, because an operator who has just been blocked is the operator most likely
+  to try again. Alternating the two regions makes every write a change in one of them,
+  without padding the text with characters a screen reader would read out.
 
   It is written once a run of commands settles, on the same window the overlay uses, and not
   once per command. A held arrow key commits at the keyboard's repeat rate, and a polite
@@ -106,7 +115,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, shall refuse a move that leaves the grid or overlaps another tile, and shall retain focus on the tile. |
 | `L2-028` | `L1-010` | With an unlocked tile focused in `edit` mode, `Shift` with a horizontal arrow shall change `cols` by one and `Shift` with a vertical arrow shall change `rows` by one, subject to the size limits and overlap rules of a pointer resize. |
-| `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it, and shall announce a run of commands once, when the tile comes to rest. |
+| `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it, and shall announce a run of commands once, when the tile comes to rest, and shall announce a repeated outcome as often as it occurs. |
 
 ## Diagrams
 

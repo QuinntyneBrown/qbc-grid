@@ -84,7 +84,7 @@ than borrowing the language of either.
 | `data-qbc-shadow` | the shadow | `data-valid`, of `true` or `false` |
 | `data-qbc-overlay` | the overlay | its presence, which is the whole of its state |
 | `data-qbc-handle` | the resize handle | its presence |
-| `data-qbc-announcer` | the live region | the text last announced |
+| `data-qbc-announcer` | each of the two live regions | the text last announced, in whichever of the pair was written most recently |
 
 Each one exists because a criterion asks something the rendered pixels cannot answer.
 `L2-012` asks whether the shadow is in its invalid state rather than its valid one;
