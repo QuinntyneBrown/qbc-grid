@@ -111,6 +111,12 @@ already have been removed from the document — which is the same path
 [`add-and-remove-tiles`](../../grid-layout/add-and-remove-tiles/) takes when the dragged
 tile is the one being removed.
 
+Releasing the capture is as much a part of a commit as adopting the geometry, and it is the
+part that fails silently. A capture left held routes every later pointer event to the tile
+that took it, so the dashboard stops answering the pointer while looking exactly as it did a
+moment earlier. `L2-013` therefore checks it the way an operator would meet it, by pressing a
+different tile, rather than by asking the DOM which element holds the capture.
+
 On a valid release the session routes the new geometry through the private `commit` method,
 so a move emits exactly once like every other change. A release onto the cells the tile started from
 reaches `commit` like any other, and `commit` finds nothing changed and emits nothing, so
@@ -127,7 +133,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | `L2-010` | `L1-004` | While a drag is in progress the grid shall translate the dragged tile with the pointer in pixels and shall paint it above every other tile with the drag elevation, and shall hold that elevation and its compositor promotion for the duration of the gesture and no longer. |
 | `L2-011` | `L1-004` | While a drag is in progress the grid shall draw a shadow at the cell nearest the dragged tile top-left corner, with `x` clamped to `[0, columns - cols]` and `y` clamped to at least 0. |
 | `L2-012` | `L1-004` | The grid shall render the shadow in its invalid state when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |
-| `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, and emit the complete layout exactly once when the adopted geometry differs from the geometry the tile held. |
+| `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, release pointer capture, and emit the complete layout exactly once when the adopted geometry differs from the geometry the tile held. |
 | `L2-014` | `L1-004` | The grid shall revert a drag and release pointer capture on `Escape`, on `pointercancel`, and when the window loses focus. |
 
 ## Diagrams
