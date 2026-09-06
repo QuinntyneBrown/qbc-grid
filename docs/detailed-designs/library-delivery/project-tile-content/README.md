@@ -70,6 +70,19 @@ Host values that do reach the DOM — the accessible name and the tile id — tr
 Angular property and attribute bindings, which escape their input. A `label` of
 `<img src=x onerror=alert(1)>` renders as that text.
 
+An instance surviving a move is invisible from outside the application, so the widget the
+demonstration page projects carries its own evidence. It renders `data-qbc-widget-instance`,
+a value taken from a counter in its constructor, and a scroll position it holds in component
+state and reflects into the DOM. A move that rebuilt the view would allocate a new instance
+value and lose the scroll; a move that relocated it leaves both untouched. The requirement is
+about identity, and identity is what the attribute carries.
+
+Proving that a hostile label ran nothing needs no instrumentation at all. If the string had
+been parsed as markup the tile would hold an `img` element and its text would differ from the
+string supplied, so a specification asserts the text matches character for character and that
+the tile contains no element the fixture did not project. An assertion that watched for an
+alert would prove only that one payload failed.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirement. It refines a level-1 (L1)

@@ -103,6 +103,12 @@ described: the [token configurations](library-delivery/theme-the-grid/#the-three
 and the [layout fixtures, configuration parameters, and emission record](grid-layout/publish-and-restore-layout/)
 each sit beside the requirement that asks for them.
 
+Two criteria ask that the grid not throw, and one that it not hang. Neither is a claim a
+single assertion can carry, so both are standing conditions of the suite: a specification
+fails on any uncaught page error, and a fixture of five hundred records renders inside the
+suite's ordinary timeout or fails by exceeding it. Stating them once keeps every
+specification from restating them and keeps a swallowed error from passing quietly.
+
 ### Observing what the DOM does not show
 
 Twenty-seven of the acceptance criteria in `docs/specs/L2.md` are about emission: seventeen
