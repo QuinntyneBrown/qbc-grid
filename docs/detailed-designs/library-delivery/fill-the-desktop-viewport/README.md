@@ -48,6 +48,15 @@ Width reaches the grid through one observer and leaves it as one custom property
 Tile records are untouched by a resize. `GridComponent.tiles` does not change, `commit` is
 not called, and `layoutChange` does not fire.
 
+Four criteria state a container width and expect a column width to follow from it. The
+demonstration page therefore gives the grid the full width of the viewport, with no padding,
+no margin, and no chrome beside it, so setting a Playwright viewport to 1544 px sets the
+container to 1544 px and the criterion's arithmetic is the grid's arithmetic. The library
+supports a host that pads its container — that is why
+[`reveal-the-grid`](../../tile-interaction/reveal-the-grid/) sets the overlay's background
+origin to the content box — and the demonstration page declines to, so a test never has to
+subtract anything to know what it measured.
+
 The observation cannot feed itself. What the observer reports is width; what the grid writes
 back is `--qbc-grid-column-width`, which moves tile edges horizontally. The grid's height
 comes from `rowCount`, which is derived from tile geometry alone and never from width, so a

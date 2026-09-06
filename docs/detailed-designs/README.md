@@ -98,6 +98,11 @@ arithmetic the criteria are already written in. The alternative — measuring pi
 and dividing back down into cells — would reimplement the grid's own arithmetic inside the
 tests that exist to check it, and would agree with the grid even when both were wrong.
 
+The host affordances a specification needs are described where the behaviour they serve is
+described: the [token configurations](library-delivery/theme-the-grid/#the-three-token-configurations)
+and the [layout fixtures, configuration parameters, and emission record](grid-layout/publish-and-restore-layout/)
+each sit beside the requirement that asks for them.
+
 ### Observing what the DOM does not show
 
 Twenty-seven of the acceptance criteria in `docs/specs/L2.md` are about emission: seventeen

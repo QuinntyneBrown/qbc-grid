@@ -57,6 +57,14 @@ service contract.
   [`theme-the-grid`](../../library-delivery/theme-the-grid/#the-three-token-configurations)
   can compare a themed render against an unthemed one.
 
+  It also accepts `columns`, `rowHeight`, and `gap` on the URL and binds whatever it reads
+  straight through to the grid, without parsing, guarding, or defaulting. Five criteria fix
+  those values and three of them fix values that are wrong on purpose — `columns` of 0,
+  `columns` of 7.6, `gap` of -4 with `rowHeight` of `NaN` — to watch the grid coerce them.
+  A page that repaired a bad value before the grid saw it would leave those criteria passing
+  against the page's own arithmetic, testing the scaffolding and reporting on the library.
+  Passing the raw value through is what keeps the coercion under test the grid's.
+
   It also carries the record of what the grid has emitted, described in
   [the testing seam](../../README.md#observing-what-the-dom-does-not-show): a count and the
   last payload, rendered into the page. Twenty-seven acceptance criteria turn on emission,
