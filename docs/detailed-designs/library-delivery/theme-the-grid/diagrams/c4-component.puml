@@ -9,7 +9,7 @@ Container_Boundary(ds, "design-system") {
 }
 
 Container_Boundary(components, "src/qbc-grid") {
-  Component(entry, "public-api.ts", "Library entry point", "Exports GridComponent, GridTileTemplateDirective, GridTile, GridMode, and GridShadow")
+  Component(entry, "public-api.ts", "Library entry point", "Exports GridComponent, GridTileTemplateDirective, GridTile, GridMode, and AddTileRequest")
   Component(grid, "GridComponent", "Angular standalone component", "Injects no service defined outside the library")
   Component(styles, "grid.css", "Component stylesheet", "Reads every visual value as var(--qbc-<role>)")
   Component(pkg, "package.json", "Package manifest", "Declares Angular as a peer dependency and depends on no application package")
