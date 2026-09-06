@@ -35,6 +35,14 @@ it in `frontend/projects/components/src/lib/grid/`.
   interaction in progress on it, and emits `layoutChange` once. An unknown `id` changes
   nothing and emits nothing.
 
+  Removing a tile also destroys whatever focus it held, and the control that removes it lives
+  inside the tile, so a keyboard operator removing a tile is always removing the element they
+  are standing on. Focus would fall to the document, and the next `Tab` would restart from
+  the top of a dashboard of sixty tiles — the operator loses their place every time, and the
+  arrangement that guarantees it is the grid rendering no chrome of its own. Focus therefore
+  moves to the tile that followed in row-major order, to the one before it when the removed
+  tile was last, and to the grid host when it was the only tile.
+
   Removing the tile a gesture is holding is the sharpest of the exits, because it is the only
   one where the element that took pointer capture leaves the document before the capture is
   given back. Releasing a capture on a detached element is the step a naive teardown gets
@@ -72,7 +80,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-020` | `L1-007` | `addTile` shall insert a tile at the requested geometry after normalization, shall place it at the first free position when the requested cells are occupied, and shall reject an id that is already present. |
 | `L2-021` | `L1-007` | `addTile` without `x` and `y` shall scan row-major from `(0, 0)` for the first position where the span fits, and shall otherwise place the tile at column 0 on the first row below the lowest occupied row. |
-| `L2-022` | `L1-007` | `removeTile` shall remove the tile with the given id, emit the layout, leave every other geometry unchanged, and treat an unknown id as a no-op. |
+| `L2-022` | `L1-007` | `removeTile` shall remove the tile with the given id, emit the layout, leave every other geometry unchanged, and treat an unknown id as a no-op, and shall place focus on a neighbouring tile when the removed tile held it. |
 
 ## Diagrams
 
