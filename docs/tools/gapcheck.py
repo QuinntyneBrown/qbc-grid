@@ -73,6 +73,18 @@ for ident, rec in sorted(l2.items()):
     if int(rec["criteria"]) == 0:
         gaps.append(f"spec {ident}: no Given/When/Then acceptance criteria")
 
+# A criterion is cited as "L2-030 criterion 3", so an ordinal has to reach one criterion.
+# One requirement numbered its four 1, 2, 3, 3 and another numbered its four 1, 2, 4, 3.
+# Neither defect changes how many criteria exist, so the count tripwire cannot see either,
+# and both survived every pass until someone tried to cite one of the criteria involved.
+for ident in sorted(l2):
+    block = next(b for b in l2_blocks if b.startswith(ident + ":"))
+    ordinals = [int(n) for n in re.findall(r"^(\d+)\. Given ", block, re.M)]
+    if ordinals != list(range(1, len(ordinals) + 1)):
+        gaps.append(
+            f"spec {ident}: acceptance criteria are numbered {ordinals} rather than 1 to "
+            f"{len(ordinals)}, so an ordinal does not name one criterion")
+
 # An unconditional promise to emit, contradicted by an acceptance criterion that says
 # nothing is emitted, means the spec disagrees with itself. The carve-out has to qualify
 # the emit clause itself, so only the tail of the statement from "emit" onward is tested;

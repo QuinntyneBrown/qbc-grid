@@ -4,7 +4,7 @@ Two scripts guard `docs/specs/` and `docs/detailed-designs/`. Both take no
 arguments and need only Python 3.
 
 ```bash
-python docs/tools/gapcheck.py         # 35 rules over the specs and the designs
+python docs/tools/gapcheck.py         # 36 rules over the specs and the designs
 python docs/tools/prove_gapcheck.py   # asserts every rule still works
 ```
 

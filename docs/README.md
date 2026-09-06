@@ -38,7 +38,7 @@ token lives in the application that provides it; the library injects nothing.
 ## Checking the work
 
 ```bash
-python docs/tools/prove_gapcheck.py   # 35 rules fire, 0 false positives
+python docs/tools/prove_gapcheck.py   # 36 rules fire, 0 false positives
 python docs/tools/gapcheck.py         # 0 gaps
 python <skill>/scripts/render_puml.py docs/detailed-designs   # 51/51
 ```

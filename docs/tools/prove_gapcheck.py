@@ -74,6 +74,12 @@ CASES = [
      sub(f"{S}/L2.md", "**Traces to:** L1-003", "**Traces to:** L1-099"),
      "which no L1 defines"),
 
+    ("acceptance criteria numbered out of sequence",
+     sub(f"{S}/L2.md",
+         "2. Given a focused tile at column 0, when the user presses `ArrowLeft`",
+         "3. Given a focused tile at column 0, when the user presses `ArrowLeft`"),
+     "does not name one criterion"),
+
     ("L2 with no shall-form Requirement line",
      sub(f"{S}/L2.md", "**Requirement:** The grid shall size its host to the lowest occupied row"
                        " and shall impose no maximum row.", ""),
