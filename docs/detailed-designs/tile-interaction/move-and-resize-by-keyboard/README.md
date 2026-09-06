@@ -92,9 +92,15 @@ announcement.
   timer is cleared when the component is destroyed along with everything else the grid holds
   past a frame.
 
-Focus stays on the tile across a committed command. The tile element is not re-created — it
-is repositioned through its custom properties — so focus survives without being restored,
-and an operator can press an arrow four times to move four cells.
+Focus stays on the tile across a committed command, and the reason is not the one the
+transform supplies. A command that carries a tile past another changes its place in the
+row-major order the template iterates, so Angular moves the element among its siblings, as
+[`project-tile-content`](../../library-delivery/project-tile-content/) describes. Focus rides
+on the same guarantee the projected view rides on: the loop is tracked by `id`, so the
+element is moved rather than destroyed and rebuilt, and a moved node keeps focus where a
+rebuilt one would lose it. The custom properties account for where the tile appears; the
+tracking accounts for its still being the same element when it gets there, and an operator
+can press an arrow four times to move four cells.
 
 Surviving is not the same as being visible. Repositioning through a transform moves nothing
 the browser considers a focus change, so a tile walked downward with the arrow key keeps
