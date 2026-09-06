@@ -58,6 +58,24 @@ Mode is a single input on `GridComponent`, and everything else derives from it.
   whose whole point is being looked at. `:focus-visible` shows the ring to the keyboard and
   withholds it from the pointer, which is the behaviour `L2-006` describes and the reason
   the distinction is worth naming.
+A mode change is one member of a set, and the set is what the design has to name. A gesture
+carries a proposed cell and a measurement of the grid it was proposed against, and a host
+may replace the layout, change the column count, the row height, or the gap, or lock the
+tile under the pointer while the button is still down. Each of those leaves the proposal
+describing a grid that no longer exists. Committing it would overwrite what the host has
+just supplied with a drop computed against what it replaced, so the gesture reverts and the
+incoming state is adopted whole. An operator loses a drag they can repeat; the alternative
+loses an update they cannot.
+
+A container-width change is the exception, and it is the exception because nothing the host
+believes has changed — the same layout in the same columns over different pixels. `L2-030`
+requires the gesture to carry on against the new column width, so the cached geometry and
+the grab offset are rebased together rather than the gesture being abandoned.
+
+A keyboard command arriving during a pointer gesture is refused from the other side of the
+same rule: two owners proposing geometry for one tile have no defined order, and the
+pointer is the one the operator is holding.
+
 - **`GridPointerSession`** — holds the gesture in flight as a `GridInteraction` value and
   exposes `cancel()`. Because the gesture is a value beside the committed tile list rather
   than a mutation of it, cancelling is discarding that value; no undo is needed.
@@ -75,7 +93,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-005` | `L1-002` | In `live` mode the grid shall present no resize handle, no move cursor, and no focusable tile, and shall not change any tile geometry in response to a pointer or keyboard gesture. |
 | `L2-006` | `L1-002` | In `edit` mode the grid shall show a move cursor and a resize handle on every unlocked tile and shall place unlocked tiles in the tab order in row-major layout order, and shall show a focus indicator on a tile focused from the keyboard and not on one pressed with the pointer. |
-| `L2-007` | `L1-002` | The grid shall revert an interaction in progress when the mode changes away from `edit`. |
+| `L2-007` | `L1-002` | The grid shall revert an interaction in progress when the mode changes away from `edit`, when a different layout is supplied, when `columns`, `rowHeight`, or `gap` changes, or when the tile under interaction is locked, shall adopt the incoming state in each case, and shall refuse a keyboard command while a pointer interaction is in progress. |
 
 ## Diagrams
 

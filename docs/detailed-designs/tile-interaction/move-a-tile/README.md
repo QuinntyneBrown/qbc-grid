@@ -73,6 +73,30 @@ The threshold is 3 px. Below it there is no drag at all, and the pointer sequenc
 an ordinary click, which is what lets a button inside a tile stay clickable in `edit` mode.
 Pointer capture is requested only once the threshold is crossed, for the same reason.
 
+That leaves a state between doing nothing and running a gesture, and it needs naming
+because events arrive in it. The session is idle, pressed, or active. It becomes pressed on
+a `pointerdown` of the primary button that the descendant rule did not claim, recording the
+press point and the pointer id and taking no capture. It becomes active when a move of that
+pointer passes 3 px, which is where capture, the overlay, and the suppressions arrive
+together. Any release, any cancellation, and any pointer other than the recorded one leave
+the pressed state without a gesture ever starting.
+
+Where those events are heard matters while the state is pressed, because capture has not
+been taken yet. A press one pixel inside a tile's edge is followed by a move that is
+already outside it, and a listener bound to the tile never sees the move that crosses the
+threshold; the press then sits alive until something unrelated clears it. So the pressed
+state listens on the document and stops listening the moment it resolves in either
+direction. Once active, capture routes everything to the tile and the document listeners
+are gone.
+
+Pointer capture is also lost in ways no exit path names. The browser raises
+`lostpointercapture` when a captured element leaves the document — which `L2-022` arranges
+deliberately, by removing the tile being dragged — and raises it again after every release
+the grid performs itself. The first ends a gesture that produced nothing and reverts. The
+second follows a drag that already committed, so it changes nothing. One event, two
+meanings, told apart by whether the session is still active, which is also what makes
+handling it safe to run twice.
+
 A drag reaches as far as the viewport showed when it began. Pointer capture routes every
 move to the tile, so the pointer arriving at the bottom edge scrolls nothing, and the grid
 adds no auto-scroll of its own. On a dashboard that fits the screen this costs nothing; on
@@ -151,12 +175,12 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-009` | `L1-004` | The grid shall begin a drag only after the pointer has travelled 3 px from the press point, shall ignore a press that originates on an interactive or editable descendant of a tile, shall not suppress interaction with projected content below that threshold, and shall suppress text selection and the browser's native drag for the duration of a gesture and no longer. |
+| `L2-009` | `L1-004` | The grid shall begin a drag only after the primary button has travelled 3 px from the press point, shall ignore a press that originates on an interactive or editable descendant of a tile, shall hold a press that has not reached the threshold as a pending state it discards on release wherever that release occurs, shall not suppress interaction with projected content below that threshold, and shall suppress text selection and the browser's native drag for the duration of a gesture and no longer. |
 | `L2-010` | `L1-004` | While a drag is in progress the grid shall translate the dragged tile with the pointer in pixels and shall paint it above every other tile with the drag elevation, and shall hold that elevation and its compositor promotion for the duration of the gesture and no longer. |
 | `L2-011` | `L1-004` | While a drag is in progress the grid shall draw a shadow at the cell nearest the dragged tile top-left corner, with `x` clamped to `[0, columns - cols]` and `y` clamped to at least 0. |
 | `L2-012` | `L1-004` | The grid shall render the shadow in an invalid state that differs from the valid one in more than colour when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |
 | `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, release pointer capture, and emit the complete layout exactly once when the adopted geometry differs from the geometry the tile held. |
-| `L2-014` | `L1-004` | The grid shall revert a drag and release pointer capture on `Escape`, on `pointercancel`, and when the window loses focus, and shall remove the shadow and the overlay on each of them. |
+| `L2-014` | `L1-004` | The grid shall revert a drag and release pointer capture on `Escape`, on `pointercancel`, on unexpected loss of pointer capture, and when the window loses focus, shall remove the shadow and the overlay on each of them, and shall treat the capture loss that follows its own release as complete rather than as a cancellation. |
 
 ## Diagrams
 

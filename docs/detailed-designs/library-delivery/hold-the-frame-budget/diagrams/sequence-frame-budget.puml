@@ -16,6 +16,7 @@ skinparam package {
 }
 actor "Dashboard operator" as actor
 box "Library - src/qbc-grid" #ECFDF3
+  participant "GridComponent" as grid
   participant "GridPointerSession" as session
   participant "cellAt" as cellat
   participant "canPlace" as canplace
@@ -48,6 +49,9 @@ group One animation frame, 20 pointer events
 end
 
 actor -> session : Release the pointer
+session -> session : Resolve the final pointer sample
 session -> scheduler : stop()
-scheduler -> dom : Cancel any pending frame
+scheduler -> dom : Cancel the pending frame and drop its write
+session -> grid : Commit the resolved geometry
+grid -> dom : Clear the preview styles in one transaction
 @enduml

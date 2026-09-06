@@ -34,9 +34,22 @@ The budget is held by one small class and one cached record, used by every gestu
 - **`GridFrameScheduler`** — holds at most one pending write and one outstanding
   `requestAnimationFrame` handle. `schedule(write)` replaces the pending write and requests
   a frame only when none is outstanding, so 20 pointer events in one frame produce one
-  write, not 20. `flush` applies a pending write immediately, which release uses so the
-  committed geometry is not delayed by a frame. `stop` cancels the outstanding handle,
-  which cancellation and destruction both use so no write outlives the gesture.
+  write, not 20. `stop` cancels the outstanding handle and drops the pending write, which
+  release, cancellation, and destruction all use so no write outlives the gesture.
+
+  A write is one mutation of an element's style attribute rather than one property
+  assignment. The two drag offsets set in a single callback are one write, because one
+  render transaction reaches the browser; counting properties would make the budget a
+  statement about how the position happens to be expressed.
+
+  Release does not flush the pending write, and the difference matters. The scheduled
+  callback holds the preview belonging to the last frame, while the release holds a pointer
+  sample newer than it. Applying the stale one and then the committed geometry paints a
+  position the operator has already moved past, and applying it after the commit paints a
+  preview over a finished drag. So release resolves its own final sample, calls `stop` to
+  discard whatever was queued, adopts the result, and clears the preview styles, in that
+  order. Cancellation takes the same path without the adoption, which is why a cancelled
+  gesture with a frame outstanding paints nothing when that frame would have run.
 - **`GridGestureCache`** — the values measured once at gesture start: the grid's left and
   top in client coordinates, the column width, the row height, the gap, and the offset
   between the pointer and the tile's top-left corner. `GridPointerSession` holds one for the
@@ -45,7 +58,14 @@ The budget is held by one small class and one cached record, used by every gestu
   [`fill-the-desktop-viewport`](../fill-the-desktop-viewport/). Measuring once is the rule
   for pointer events, which arrive by the dozen in a frame; a resize arrives rarely and
   invalidates the cached geometry outright, so holding the stale numbers would trade a
-  correct drop for a measurement nobody would have noticed.
+  correct drop for a measurement nobody would have noticed. The refresh rebases the grab
+  offset along with the metrics, because a column width that changed under a lifted tile
+  moves the corner the offset was measured against, and refreshing one without the other
+  slides the tile out from under the cursor.
+
+  Every other change a host can make during a gesture cancels it rather than refreshing it,
+  as [`switch-grid-mode`](../../tile-interaction/switch-grid-mode/) describes. A width
+  change is the one case where the layout the gesture was proposed against still stands.
 - **`cellAt`** and **`canPlace`** — pure functions over numbers and cell rectangles. Neither
   touches an element, which is what makes the per-event work a few arithmetic operations
   and an overlap scan rather than a layout pass.
@@ -83,6 +103,23 @@ projection seam is what leaves that cost where it can be fixed — in the host's
 which own their own change detection — rather than burying it inside a library that has no
 view of it.
 
+The threshold is a quantity before it is a number, and the quantity is the main-thread work
+a frame spends on the gesture: script, style, layout, and paint. The interval between
+frames is the reading that looks equivalent and is not. An unblocked 60Hz stream presents
+every `1000 / 60` ms, or 16.667 ms, so a suite measuring animation-frame timestamps against
+a 16 ms budget reports a failure on a run that dropped nothing. Measuring only the time
+spent inside the callback has the opposite fault: it passes while style, layout, or paint
+miss the frame the work belonged to.
+
+A number without the conditions that produced it is not reproducible, so the benchmark
+fixes them. It runs a production build on the reference runner — the acceptance suite's
+Chromium at a pinned CPU throttling factor, recorded with the browser and version, the
+device scale, and the display cadence — over the 60-tile static fixture. It warms up, then
+takes three measured two-second drags, and reports each run's 95th percentile, its maximum,
+its sample count, and its dropped frames, retaining the raw traces. The write-count
+instrumentation runs separately, because a `MutationObserver` watching every tile changes
+the thing the timing run is measuring.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirement. It refines a level-1 (L1)
@@ -90,7 +127,7 @@ requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-031` | `L1-012` | The grid shall apply position and size through compositor-friendly style writes batched to at most one write per animation frame per moved element, shall measure gesture geometry once at gesture start, and shall hold the 95th percentile frame duration at or below 16 ms while one tile among 60 is dragged. |
+| `L2-031` | `L1-012` | The grid shall apply position and size through compositor-friendly style writes batched to at most one style-attribute mutation per animation frame per moved element, shall measure gesture geometry once at gesture start and again only when the container width changes, shall resolve the final pointer sample on release and discard any pending preview write, and shall hold the 95th percentile of per-frame main-thread work at or below 16 ms while one tile among 60 is dragged. |
 
 ## Diagrams
 

@@ -329,7 +329,7 @@ for md in sorted(DESIGNS.rglob("*.md")):
 # turn on emission, fix a starting arrangement, act through a control. None can be
 # recomputed from its prose, so this is a tripwire rather than a proof: when the number
 # of acceptance criteria changes, those sentences need rereading, and the run says so.
-EXPECTED_CRITERIA = 140
+EXPECTED_CRITERIA = 151
 actual_criteria = len(re.findall(r"^\d+\. Given ", l2_text, re.M))
 if actual_criteria != EXPECTED_CRITERIA:
     gaps.append(
