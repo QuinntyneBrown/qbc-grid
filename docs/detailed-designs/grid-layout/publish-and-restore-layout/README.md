@@ -52,6 +52,11 @@ service contract.
   where the responsibilities the repository assigns to an application project — routing and
   page-level composition — are met.
 
+  It is served at three routes that differ only in which token stylesheets the document
+  carries, so that the criteria in
+  [`theme-the-grid`](../../library-delivery/theme-the-grid/#the-three-token-configurations)
+  can compare a themed render against an unthemed one.
+
   It also carries the record of what the grid has emitted, described in
   [the testing seam](../../README.md#observing-what-the-dom-does-not-show): a count and the
   last payload, rendered into the page. Twenty-seven acceptance criteria turn on emission,

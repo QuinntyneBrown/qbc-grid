@@ -119,6 +119,30 @@ What the design system builds is therefore two artifacts from one source: the to
 published as a CSS package a consumer can load, and the gallery, deployed as its own static
 site.
 
+### The three token configurations
+
+Every criterion in this feature describes a host in a particular state, and two of those
+states are not the one an operator sees. `DashboardPage` is therefore served at three
+routes that differ in nothing except which stylesheets the document carries:
+
+| Route | Document carries | Proves |
+|-------|------------------|--------|
+| `/` | the design system's token file | the ordinary dashboard, and the reference render |
+| `/tokens/absent` | no token file | that each fallback equals the token it stands in for |
+| `/tokens/overridden` | the token file and an override sheet | that no painted value is a literal |
+
+Routes rather than a query parameter, because the alternative is attaching or detaching a
+stylesheet after load, which leaves a window in which the page paints with values it is
+about to replace. A comparison test would race that window and fail intermittently, which is
+worse than failing outright. A route settles the document's stylesheets before the first
+paint.
+
+The override sheet is generated from the token file rather than written by hand. A
+hand-maintained sheet would cover the tokens someone remembered, so a token added to the
+design system and forgotten here would go unchecked — and the criterion that catches a
+hard-coded literal is exactly the one that would quietly stop covering it. Generating the
+sheet means the check grows with the catalogue on its own.
+
 The grid's own layout custom properties — `--qbc-grid-column-width`, `--qbc-tile-x`, and
 their siblings — are computed values the component writes at run time, not design tokens. A
 consumer reads them but does not set them.
