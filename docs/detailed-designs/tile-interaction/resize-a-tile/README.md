@@ -9,7 +9,7 @@ gesture that changes a tile's `cols` and `rows` while leaving its `x` and `y` al
 The grid offers **one** resize handle, at the bottom-right corner. Edge handles and a
 second corner were considered and left out: each additional handle multiplies the states
 the gesture can be in, and a single corner that grows a tile right and down is the gesture
-every comparable library trains its users on. The handle's hit area is at least 16 px
+every comparable library trains its users on. The handle's hit area is at least 24 px
 square, because a 4 px visual corner is not a 4 px target.
 
 Resize reuses the move gesture wholesale. The same `GridPointerSession` runs it with a
@@ -37,7 +37,7 @@ described in [`move-a-tile`](../move-a-tile/).
 
 - **The resize handle** — an element rendered inside each unlocked tile in `edit` mode, at
   the bottom-right corner, inset by `--qbc-space-1`. Its hit area is the larger of
-  `--qbc-size-handle` and the 16 px floor this requirement sets, so a consumer restyling the
+  `--qbc-size-handle` and the 24 px floor this requirement sets, so a consumer restyling the
   grid can enlarge the target but cannot shrink it below what `L2-015` demands. The hit area
   may extend beyond the handle's visual bounds, which is what lets a small corner grip stay
   easy to catch. `pointerdown` on the handle stops propagation, so the press starts a resize
@@ -68,7 +68,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-015` | `L1-005` | The grid shall expose exactly one resize handle per unlocked tile in `edit` mode, at the bottom-right corner, with a hit area of at least 16 px by 16 px, and a press on that handle shall start a resize and shall not start a move. |
+| `L2-015` | `L1-005` | The grid shall expose exactly one resize handle per unlocked tile in `edit` mode, at the bottom-right corner, with a hit area of at least 24 px by 24 px, and a press on that handle shall start a resize and shall not start a move. |
 | `L2-016` | `L1-005` | While a resize is in progress the grid shall size the tile to the pointer in pixels and shall draw a shadow at the whole-cell span the tile would take on release. |
 | `L2-017` | `L1-005` | The grid shall clamp every resize to the tile `minCols`, `minRows`, `maxCols`, and `maxRows`, shall default `minCols` and `minRows` to 1, and shall clamp `maxCols` to `columns`. |
 | `L2-018` | `L1-005` | The grid shall render the resize shadow invalid when the target span overlaps an occupied cell, and shall revert the tile size on release or on `Escape`. |

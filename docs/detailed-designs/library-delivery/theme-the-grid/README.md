@@ -58,6 +58,13 @@ The slice is a package shape, an entry point, and a token catalogue.
     step of it: `--qbc-space-1` sets the resize handle's inset from the tile corner and the
     focus ring's offset from the tile edge. The remaining steps serve other consumers, and
     the grid imposes no padding of its own on projected content.
+  Both duration tokens resolve to zero under `prefers-reduced-motion: reduce`. The grid owns
+  two transitions — the overlay's fade and a tile settling back after a refused or abandoned
+  interaction — and a tile flying home is the motion an operator with vestibular sensitivity
+  asked not to be shown. Answering at the token rather than at each rule means the two are
+  covered together, and a consumer adding a third transition from these tokens inherits the
+  answer rather than having to remember it.
+
   - **Expression** — `--qbc-elevation-resting`, `--qbc-elevation-drag`,
     `--qbc-layer-drag`, `--qbc-duration-fast`, `--qbc-duration-settle`, and
     `--qbc-easing-standard`. `--qbc-layer-drag` is the stacking level a tile takes while it
@@ -87,8 +94,9 @@ The slice is a package shape, an entry point, and a token catalogue.
   duplicates a design-system value, and they are safe to keep for that reason and no other.
 
   One value resists a token override. `L2-015` fixes the resize handle's hit area at no less
-  than 16 px, which is an accessibility floor rather than a matter of taste, so the
-  stylesheet takes the larger of that floor and `--qbc-size-handle`. A consumer may enlarge
+  than 24 px, which is the pointer target minimum rather than a matter of taste, and which
+  the spacing allowance does not excuse here because the handle sits inside the tile's own
+  drag target, so the stylesheet takes the larger of that floor and `--qbc-size-handle`. A consumer may enlarge
   the target and may not shrink it below the requirement. The floor is a length, and not one
   of the colour, radius, shadow, or duration values `L2-034` holds to tokens.
 - **The token gallery** — the design system's static site, rendering every token beside the
@@ -193,7 +201,7 @@ a level-1 (L1) requirement, cited by identifier.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-033` | `L1-014` | The grid shall be published from the `components` library as standalone Angular components, shall import nothing from the application or from the `api` and `domain` libraries, shall inject no service defined outside the library, and shall declare Angular as a peer dependency. |
-| `L2-034` | `L1-014` | The grid stylesheets shall read every colour, spacing, radius, elevation, border width, and transition duration as a `var(--qbc-<role>)` custom property owned by the design system. |
+| `L2-034` | `L1-014` | The grid stylesheets shall read every colour, spacing, radius, elevation, border width, and transition duration as a `var(--qbc-<role>)` custom property owned by the design system, and shall resolve both duration tokens to zero where the operator has asked for reduced motion. |
 
 ## Diagrams
 
