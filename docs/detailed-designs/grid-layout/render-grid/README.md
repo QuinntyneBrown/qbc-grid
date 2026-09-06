@@ -110,6 +110,16 @@ then a `transform: translate3d(...)` built with `calc()` in the stylesheet, and 
 a `calc()` width and height. Keeping the arithmetic in CSS means a container resize
 repositions every tile without the component touching a single element.
 
+Four things the component holds outlive the frame that created them, and each is released
+when the component is destroyed: the `ResizeObserver` behind `GridWidthObserver`, the
+animation-frame handle inside `GridFrameScheduler`, the window listeners and pointer capture
+`GridPointerSession` takes for a gesture, and the timer that holds the keyboard settle
+window open. Stating them as a set rather than one at a time is deliberate — the first three
+were released from the start and the fourth arrived later, which is how a component acquires
+a leak: not by forgetting teardown, but by adding a fifth thing to a list nobody reread. A
+timer that survives its component writes to a signal no view is reading, and in a test suite
+it carries that write into the specification that follows.
+
 The grid host carries the computed height and does not clip: an absolutely positioned tile
 sits inside a host whose height follows the lowest occupied row, with no `overflow` rule
 hiding what extends past it. A tile moved to row 40 therefore lengthens the host and the

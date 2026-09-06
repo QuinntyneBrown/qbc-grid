@@ -60,7 +60,9 @@ announcement.
   uses. A keyboard command has no gesture duration of its own, so without the window
   [`reveal-the-grid`](../reveal-the-grid/) would flash the overlay for a single frame or
   not show it at all. A second command while the window is open extends it rather than
-  opening another, so holding an arrow key reveals the grid once and hides it once.
+  opening another, so holding an arrow key reveals the grid once and hides it once, and the
+  timer is cleared when the component is destroyed along with everything else the grid holds
+  past a frame.
 
 Focus stays on the tile across a committed command. The tile element is not re-created — it
 is repositioned through its custom properties — so focus survives without being restored,
