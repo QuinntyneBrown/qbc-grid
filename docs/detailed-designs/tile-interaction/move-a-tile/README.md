@@ -124,7 +124,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-009` | `L1-004` | The grid shall begin a drag only after the pointer has travelled 3 px from the press point, shall not suppress interaction with projected content below that threshold, and shall suppress text selection and the browser's native drag for the duration of a gesture and no longer. |
-| `L2-010` | `L1-004` | While a drag is in progress the grid shall translate the dragged tile with the pointer in pixels and shall paint it above every other tile with the drag elevation. |
+| `L2-010` | `L1-004` | While a drag is in progress the grid shall translate the dragged tile with the pointer in pixels and shall paint it above every other tile with the drag elevation, and shall hold that elevation and its compositor promotion for the duration of the gesture and no longer. |
 | `L2-011` | `L1-004` | While a drag is in progress the grid shall draw a shadow at the cell nearest the dragged tile top-left corner, with `x` clamped to `[0, columns - cols]` and `y` clamped to at least 0. |
 | `L2-012` | `L1-004` | The grid shall render the shadow in its invalid state when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |
 | `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, and emit the complete layout exactly once when the adopted geometry differs from the geometry the tile held. |

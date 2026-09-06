@@ -55,7 +55,9 @@ The budget is held by one small class and one cached record, used by every gestu
   the per-frame transform off the main thread, but a promotion costs memory and a paint, so
   a grid that declared it on every tile would hold sixty layers to move one. Declaring it
   only for the tile under the pointer, for only as long as the gesture lasts, is what buys
-  the compositing without the standing cost.
+  the compositing without the standing cost. `L2-010` binds the release as well as the
+  taking, because a promotion that is never dropped costs exactly what scoping it was
+  meant to save and passes every criterion that only looks at a drag in flight.
 
 The overlap scan in `canPlace` is linear in the tile count, which at 60 tiles is far below
 the cost of a single layout pass. It is left simple rather than indexed, because the
