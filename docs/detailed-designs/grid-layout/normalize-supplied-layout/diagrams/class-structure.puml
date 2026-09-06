@@ -1,0 +1,61 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Normalize a supplied layout
+
+interface GridCell {
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+interface GridTile {
+  +id: string
+  +locked?: boolean
+  +minCols?: number
+  +minRows?: number
+  +maxCols?: number
+  +maxRows?: number
+}
+
+interface LayoutRepair {
+  +tiles: readonly GridTile[]
+  +repaired: boolean
+}
+
+class normalizeLayout <<function>> {
+  +normalizeLayout(supplied: unknown, columns: number): LayoutRepair
+}
+
+class clampTile <<function>> {
+  +clampTile(tile: GridTile, columns: number): GridTile
+}
+
+class overlaps <<function>> {
+  +overlaps(a: GridCell, b: GridCell): boolean
+}
+
+class GridComponent {
+  +layout: InputSignal<readonly GridTile[]>
+  +tiles: Signal<readonly GridTile[]>
+  -commit(next: readonly GridTile[]): void
+}
+
+GridTile --|> GridCell
+normalizeLayout ..> clampTile : coerces each record with
+normalizeLayout ..> overlaps : detects collisions with
+normalizeLayout ..> LayoutRepair : returns
+LayoutRepair --> "*" GridTile : carries
+GridComponent ..> normalizeLayout : repairs with
+@enduml

@@ -1,0 +1,62 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Publish and restore the layout
+
+interface GridTile {
+  +id: string
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+  +locked?: boolean
+}
+
+class GridComponent {
+  +layout: InputSignal<readonly GridTile[]>
+  +layoutChange: OutputEmitterRef<GridTile[]>
+  -commit(next: readonly GridTile[]): void
+}
+
+interface IDashboardService {
+  +load(): Signal<readonly GridTile[]>
+  +save(layout: readonly GridTile[]): void
+}
+
+class DashboardService {
+  +load(): Signal<readonly GridTile[]>
+  +save(layout: readonly GridTile[]): void
+}
+
+class MockDashboardService {
+  +load(): Signal<readonly GridTile[]>
+  +save(layout: readonly GridTile[]): void
+}
+
+class DashboardComponent {
+  -service: IDashboardService
+  +layout: Signal<readonly GridTile[]>
+  +onLayoutChange(layout: readonly GridTile[]): void
+}
+
+class DASHBOARD_SERVICE <<InjectionToken>> {
+}
+
+DashboardService ..|> IDashboardService
+MockDashboardService ..|> IDashboardService
+DASHBOARD_SERVICE ..> IDashboardService : provides
+DashboardComponent --> DASHBOARD_SERVICE : injects
+DashboardComponent --> GridComponent : binds layout to
+GridComponent --> "*" GridTile : emits
+IDashboardService ..> GridTile : loads and saves
+@enduml

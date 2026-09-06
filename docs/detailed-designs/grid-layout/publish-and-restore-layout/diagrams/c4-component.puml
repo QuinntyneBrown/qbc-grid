@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Publish and restore the layout
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Emits a frozen copy of the layout on every committed change")
+}
+
+Container_Boundary(domainlib, "domain library") {
+  Component(dash, "DashboardComponent", "Angular standalone component", "Loads a layout on init and saves each emitted layout")
+}
+
+Container_Boundary(apilib, "api library") {
+  Component(contract, "IDashboardService", "TypeScript interface", "load and save contract for a dashboard layout")
+  Component(token, "DASHBOARD_SERVICE", "Angular InjectionToken", "The only handle a consumer injects")
+  Component(adapter, "DashboardService", "TypeScript class", "Production adapter over browser storage")
+  Component(mock, "MockDashboardService", "TypeScript class", "Deterministic adapter bound under Playwright")
+}
+
+ComponentDb_Ext(store, "Layout store", "Browser local storage", "Persists the last committed layout as JSON")
+
+Rel(grid, dash, "Emits layoutChange to")
+Rel(dash, token, "Injects")
+Rel(token, contract, "Resolves to an implementation of")
+Rel(adapter, contract, "Implements")
+Rel(mock, contract, "Implements")
+Rel(adapter, store, "Reads and writes", "JSON")
+Rel(dash, grid, "Binds the loaded layout to")
+@enduml

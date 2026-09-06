@@ -1,0 +1,43 @@
+@startuml
+title UML sequence behaviour - Enter edit mode
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - qbc-grid application" #E0F2FE
+  participant "DashboardPage" as page
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "grid.css" as styles
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> page : Toggle Edit
+page -> dashboard : Set mode to edit
+dashboard -> grid : Bind mode of edit
+grid -> grid : Derive editable, leaving every geometry unchanged per L2-006
+grid -> dom : Set data-mode of edit on the host
+grid -> dom : Give each unlocked tile tabindex 0 in row-major order per L2-006
+grid -> dom : Give each locked tile tabindex -1 per L2-008
+styles -> dom : Show the move cursor, the resize handle, and the focus ring
+dom --> actor : Present the editable dashboard
+actor -> dom : Press Tab
+dom --> actor : Move focus through the unlocked tiles in row-major order
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers - qbc-grid dashboard
+
+Person(operator, "Dashboard operator", "Arranges and watches telemetry tiles")
+
+System_Boundary(system, "Dashboard delivery") {
+  Container(app, "qbc-grid application", "Angular application project", "Routed dashboard page, mode toggle, and layout persistence")
+  Container(domain, "domain library", "Angular library", "DashboardComponent, which injects the dashboard service token and renders the grid")
+  Container(api, "api library", "Angular library", "IDashboardService contract, DASHBOARD_SERVICE token, and the storage adapter")
+  Container(components, "components library", "Angular library, published to npm", "GridComponent, the tile template directive, and the pure layout core")
+  Container(tokens, "design-system", "Static site and CSS package", "Authoritative qbc design tokens")
+}
+
+System_Ext(browser, "Desktop browser", "Pointer, keyboard, ResizeObserver, and the compositor")
+ContainerDb_Ext(store, "Layout store", "Browser local storage", "Persists the last committed layout")
+
+Rel(operator, app, "Uses", "Pointer and keyboard")
+Rel(app, domain, "Composes")
+Rel(domain, api, "Reads and saves layouts through", "DASHBOARD_SERVICE token")
+Rel(domain, components, "Renders")
+Rel(api, store, "Reads and writes", "JSON")
+Rel(components, tokens, "Reads", "CSS custom properties")
+Rel(components, browser, "Listens to and paints through", "DOM")
+@enduml

@@ -1,0 +1,70 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Add and remove tiles
+
+interface GridCell {
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+interface GridTile {
+  +id: string
+  +cols: number
+  +rows: number
+  +locked?: boolean
+  +minCols?: number
+  +maxCols?: number
+}
+
+class GridComponent {
+  +tiles: Signal<readonly GridTile[]>
+  +layoutChange: OutputEmitterRef<GridTile[]>
+  +addTile(request: AddTileRequest): void
+  +removeTile(id: string): void
+  -commit(next: readonly GridTile[]): void
+}
+
+interface AddTileRequest {
+  +id: string
+  +cols: number
+  +rows: number
+  +x?: number
+  +y?: number
+  +locked?: boolean
+  +label?: string
+}
+
+class clampTile <<function>> {
+  +clampTile(tile: GridTile, columns: number): GridTile
+}
+
+class canPlace <<function>> {
+  +canPlace(others: readonly GridTile[], candidate: GridCell, columns: number): boolean
+}
+
+class findFreeCell <<function>> {
+  +findFreeCell(others: readonly GridTile[], cols: number, rows: number, columns: number): GridCell
+}
+
+GridTile --|> GridCell
+GridComponent ..> AddTileRequest : accepts
+GridComponent ..> clampTile : clamps with
+GridComponent ..> canPlace : tests with
+GridComponent ..> findFreeCell : places with
+findFreeCell ..> canPlace : tests each candidate with
+findFreeCell ..> GridCell : returns
+GridComponent --> "*" GridTile : holds
+@enduml

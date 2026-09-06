@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour - Publish a changed layout
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridPointerSession" as session
+  participant "GridComponent" as grid
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - api library" #E0F2FE
+  participant "DASHBOARD_SERVICE" as service
+end box
+box "Platform - desktop browser" #FFF4E5
+  database "Layout store" as store
+end box
+
+actor -> session : Drag a tile across 300 px
+loop for each pointer move
+  session -> session : Update the shadow only, emitting nothing per L2-023
+end
+actor -> session : Release the pointer on a valid target
+session -> grid : Commit the shadow geometry
+grid -> grid : Freeze one record per tile per L2-023
+grid --> dashboard : layoutChange with id, x, y, cols, rows, locked
+dashboard -> service : save(layout)
+service -> store : Write the layout as JSON
+store --> service : Written
+service --> dashboard : Saved
+dashboard --> actor : Present the committed arrangement
+@enduml

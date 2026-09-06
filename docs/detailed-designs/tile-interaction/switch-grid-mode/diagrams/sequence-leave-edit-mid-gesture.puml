@@ -1,0 +1,41 @@
+@startuml
+title UML sequence behaviour - Leave edit mode during a gesture
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> session : Drag a tile, gesture in flight
+session -> dom : Hold pointer capture and paint the lifted tile
+dashboard -> grid : Set mode to live
+grid -> session : cancel() per L2-007
+session -> session : Discard the interaction value, keeping the committed tiles
+session -> dom : Release pointer capture
+session --> grid : Cancelled
+grid -> dom : Restore the tile transform to its committed geometry
+grid -> dom : Hide the overlay and the shadow
+grid -> grid : Emit nothing, because nothing committed
+grid -> dom : Set data-mode of live and remove tiles from the tab order per L2-005
+dom --> actor : Present the inert dashboard, unchanged
+@enduml

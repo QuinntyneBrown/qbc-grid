@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Add and remove tiles
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Exposes addTile and removeTile and owns the committed tile signal")
+  Component(clamp, "clampTile", "TypeScript function", "Clamps a span and its coordinates into range")
+  Component(canplace, "canPlace", "TypeScript function", "Reports whether a candidate cell is free and inside the grid")
+  Component(find, "findFreeCell", "TypeScript function", "Row-major first-fit search for L2-021")
+  Component(emit, "layoutChange", "Angular output", "Emits the committed layout once per change")
+}
+
+Container_Ext(domain, "domain library", "Angular library", "DashboardComponent, which adds and removes tiles")
+
+Rel(domain, grid, "Calls addTile and removeTile on")
+Rel(grid, clamp, "Clamps the requested geometry with")
+Rel(grid, canplace, "Tests the requested position with")
+Rel(grid, find, "Chooses a free position with")
+Rel(find, canplace, "Tests each candidate with")
+Rel(grid, emit, "Publishes the new layout through")
+Rel(emit, domain, "Delivers the committed layout to")
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context - qbc-grid dashboard
+
+Person(operator, "Dashboard operator", "Arranges and watches telemetry tiles on a desktop workstation")
+
+System(dashboard, "Dashboard application", "Hosts tiles, holds the saved layout, and switches the grid between live and edit mode")
+System(designSystem, "qbc design system", "Publishes the design tokens the grid reads")
+System_Ext(browser, "Desktop browser", "Supplies pointer, keyboard, and resize events and composites the result")
+
+Rel(operator, dashboard, "Arranges tiles in", "Pointer and keyboard")
+Rel(dashboard, browser, "Renders through", "DOM")
+Rel(dashboard, designSystem, "Reads tokens from", "CSS custom properties")
+Rel(browser, dashboard, "Delivers pointer, keyboard, and resize events to")
+@enduml

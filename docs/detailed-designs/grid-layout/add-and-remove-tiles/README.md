@@ -1,0 +1,95 @@
+# Add and remove tiles
+
+## Overview
+
+A dashboard is not fixed at load. An operator adds a tile for a new telemetry source and
+removes one that is no longer watched. This feature covers those two operations as the
+host application invokes them, and the placement rule that keeps an added tile from
+landing on top of an existing one.
+
+Placement has two forms. With an explicit position the caller states where the tile
+belongs; with no position the grid chooses. The choice is a **row-major first fit**: the
+grid scans left to right along row 0, then row 1, and takes the first position where the
+tile's span fits without overlapping. When no occupied row has room, the tile goes to
+column 0 on the first row below the lowest occupied row.
+
+First fit is chosen over a best-fit or bin-packing search because it is predictable. An
+operator who adds three small tiles sees them fill the first gap in reading order, which
+is where the eye already expects them. A cleverer search produces a tighter layout that
+nobody can anticipate.
+
+The grid never overlaps tiles, so an explicit position that is already occupied does not
+produce an overlap and does not fail silently — it falls through to the same first-fit
+search. A duplicate `id` is different: it is a caller error rather than a spatial
+conflict, so the addition is rejected and the layout is left alone.
+
+## Description
+
+The feature adds two public methods to `GridComponent` and three pure functions beside
+it in `frontend/projects/components/src/lib/grid/`.
+
+- **`GridComponent.addTile(request)`** — accepts an `AddTileRequest`, rejects a duplicate
+  `id`, clamps the requested span, resolves a position, commits the new tile list, and
+  emits `layoutChange` once.
+- **`GridComponent.removeTile(id)`** — drops the tile with that `id`, cancels any
+  interaction in progress on it, and emits `layoutChange` once. An unknown `id` changes
+  nothing and emits nothing.
+- **`AddTileRequest`** — `id`, `cols`, and `rows` are required; `x`, `y`, `locked`, and
+  `label` are optional. Omitting `x` and `y` selects automatic placement.
+- **`clampTile`** — pure function reducing a span to at most `columns`, raising `cols`
+  and `rows` to at least 1, and pulling `x` into `[0, columns - cols]`.
+- **`canPlace`** — pure function reporting whether a candidate `GridCell` sits inside the
+  grid and overlaps none of the supplied tiles. It is the single test used by placement,
+  by the drag shadow, and by the keyboard commands, so all three agree by construction.
+- **`findFreeCell`** — pure function performing the row-major scan. It calls `canPlace`
+  for each candidate and terminates at the first row below the lowest occupied row,
+  which bounds the search.
+
+`GridComponent.commit` is the one private path through which the tile signal changes. It
+sets the signal and emits `layoutChange`, so every mutation in the library — add, remove,
+committed interaction, and repair — emits exactly once and in one place.
+
+## Requirements
+
+The feature realizes the following level-2 (L2) requirements. Each L2 requirement
+refines a level-1 (L1) requirement, cited by identifier.
+
+| L2 ID | Refines (L1) | Requirement |
+|-------|--------------|-------------|
+| `L2-020` | `L1-007` | `addTile` shall insert a tile at the requested geometry after normalization, shall place it at the first free position when the requested cells are occupied, and shall reject an id that is already present. |
+| `L2-021` | `L1-007` | `addTile` without `x` and `y` shall scan row-major from `(0, 0)` for the first position where the span fits, and shall otherwise place the tile at column 0 on the first row below the lowest occupied row. |
+| `L2-022` | `L1-007` | `removeTile` shall remove the tile with the given id, emit the layout, leave every other geometry unchanged, and treat an unknown id as a no-op. |
+
+## Diagrams
+
+The system context and container views are shared across every feature and are held at
+the [tree root](../../README.md#where-the-c4-levels-live).
+
+### Components
+
+`GridComponent` exposes the two methods to the `domain` library and delegates every
+spatial decision to `clampTile`, `canPlace`, and `findFreeCell`.
+
+![C4 component view for adding and removing tiles](diagrams/c4-component.png)
+
+### Class structure
+
+`AddTileRequest` is the caller-facing shape; `GridTile` is what the grid holds.
+`findFreeCell` depends on `canPlace`, which is also the test used by the interaction
+features.
+
+![Class diagram for adding and removing tiles](diagrams/class-structure.png)
+
+### Behaviour — add a tile
+
+A duplicate id ends the operation. Otherwise the span is clamped, an explicit position is
+tested, and an occupied or absent position falls through to the row-major scan.
+
+![Sequence diagram for adding a tile](diagrams/sequence-add-tile.png)
+
+### Behaviour — remove a tile
+
+An unknown id is a no-op. A known id cancels any interaction on that tile, drops it, and
+emits the layout once.
+
+![Sequence diagram for removing a tile](diagrams/sequence-remove-tile.png)

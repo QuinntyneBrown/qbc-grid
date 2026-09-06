@@ -1,0 +1,51 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Lock a tile
+
+interface GridCell {
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+interface GridTile {
+  +id: string
+  +locked?: boolean
+  +label?: string
+}
+
+class GridComponent {
+  +mode: InputSignal<GridMode>
+  +editable: Signal<boolean>
+  +isInteractive(tile: GridTile): boolean
+  +tabIndexOf(tile: GridTile): number
+  -onPointerDown(tile: GridTile, event: PointerEvent): void
+  -onKeyDown(tile: GridTile, event: KeyboardEvent): void
+}
+
+class GridPointerSession {
+  +start(kind: GridInteractionKind, tile: GridTile, event: PointerEvent): void
+}
+
+class canPlace <<function>> {
+  +canPlace(others: readonly GridTile[], candidate: GridCell, columns: number): boolean
+}
+
+GridTile --|> GridCell
+GridComponent --> "*" GridTile : renders
+GridComponent ..> GridPointerSession : starts a gesture through
+GridComponent ..> canPlace : tests targets with
+canPlace ..> GridTile : treats a locked tile as occupied
+@enduml

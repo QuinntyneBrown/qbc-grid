@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour - Render the grid
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - qbc-grid application" #E0F2FE
+  participant "DashboardPage" as page
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "coerceGridOptions" as coerce
+  participant "normalizeLayout" as normalize
+  participant "rectOf" as rect
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> page : Open the dashboard
+page -> dashboard : Render with the saved layout
+dashboard -> grid : Bind layout, columns, rowHeight, gap, mode
+grid -> coerce : Coerce configuration per L2-004
+coerce --> grid : GridMetrics with columns, rowHeight, gap
+grid -> dom : Measure the host content width once
+dom --> grid : Content width
+grid -> grid : Derive columnWidth per L2-001
+grid -> normalize : Repair the supplied layout per L2-025
+normalize --> grid : Repaired tiles and a repaired flag
+loop for each tile
+  grid -> rect : Convert geometry to a pixel rectangle per L2-002
+  rect --> grid : Rectangle
+  grid -> dom : Write tile custom properties and transform
+end
+grid -> grid : Derive rowCount from the lowest occupied row per L2-003
+grid -> dom : Set the grid host height
+dom --> actor : Present the arranged dashboard
+@enduml

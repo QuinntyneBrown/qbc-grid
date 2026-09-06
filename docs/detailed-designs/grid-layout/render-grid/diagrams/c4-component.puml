@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Render the grid
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Owns the tile signal and the metrics signal, and writes the grid custom properties")
+  Component(tpl, "GridTileTemplateDirective", "Angular directive", "Holds the per-tile TemplateRef the host supplies")
+  Component(metrics, "GridMetrics", "TypeScript type", "columns, columnWidth, rowHeight, and gap for the current render")
+  Component(coerce, "coerceGridOptions", "TypeScript function", "Applies L2-004 coercion to columns, rowHeight, and gap")
+  Component(normalize, "normalizeLayout", "TypeScript function", "Applies L2-025 repair before any tile is rendered")
+  Component(rect, "rectOf", "TypeScript function", "Converts a tile geometry to a pixel rectangle for L2-002")
+}
+
+Container_Ext(domain, "domain library", "Angular library", "Supplies the layout and the per-tile template")
+System_Ext(browser, "Desktop browser", "Layout and compositing")
+
+Rel(domain, grid, "Binds layout, columns, rowHeight, and gap")
+Rel(domain, tpl, "Declares the per-tile template on")
+Rel(grid, coerce, "Coerces configuration with")
+Rel(grid, normalize, "Repairs the supplied layout with")
+Rel(grid, metrics, "Publishes")
+Rel(grid, rect, "Positions each tile with")
+Rel(grid, tpl, "Reads the TemplateRef from")
+Rel(grid, browser, "Writes custom properties and transforms to", "DOM")
+@enduml

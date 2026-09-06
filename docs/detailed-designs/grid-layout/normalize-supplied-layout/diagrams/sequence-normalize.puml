@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour - Normalize a supplied layout
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "normalizeLayout" as normalize
+  participant "clampTile" as clamp
+  participant "overlaps" as overlap
+end box
+
+dashboard -> grid : Bind a stored layout of unknown quality
+grid -> normalize : normalizeLayout(supplied, columns)
+normalize -> normalize : Drop records without an id and duplicate ids, keeping the first
+loop for each surviving record
+  normalize -> clamp : Coerce numbers, then clamp span and coordinates per L2-025
+  clamp --> normalize : Record inside the grid
+end
+loop for each record in order
+  normalize -> overlap : Test against every earlier record
+  overlap --> normalize : Intersecting or clear
+  opt still intersecting
+    normalize -> normalize : Move the record down to the first row where it fits
+  end
+end
+normalize --> grid : LayoutRepair with tiles and a repaired flag
+alt repaired is false
+  grid -> grid : Adopt the tiles and emit nothing per L2-026
+else repaired is true
+  grid -> grid : Adopt the repaired tiles
+  grid --> dashboard : Emit the repaired layout exactly once per L2-026
+  dashboard -> dashboard : Persist the correction
+end
+@enduml

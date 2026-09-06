@@ -1,0 +1,55 @@
+@startuml
+title UML sequence behaviour - Add a tile
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - qbc-grid application" #E0F2FE
+  participant "DashboardPage" as page
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "clampTile" as clamp
+  participant "canPlace" as canplace
+  participant "findFreeCell" as find
+end box
+
+actor -> page : Choose Add tile
+page -> dashboard : Request a new tile
+dashboard -> grid : addTile({ id, cols, rows })
+grid -> grid : Reject a duplicate id per L2-020
+alt id already present
+  grid --> dashboard : No change and no emission
+else id is new
+  grid -> clamp : Clamp the span to columns per L2-021
+  clamp --> grid : Clamped span
+  alt an explicit position was supplied
+    grid -> canplace : Test the requested cell
+    canplace --> grid : Free or occupied
+  end
+  opt no position supplied, or the requested cell is occupied
+    grid -> find : Scan row-major for the first fit per L2-021
+    find -> canplace : Test each candidate cell
+    canplace --> find : Free or occupied
+    find --> grid : First free cell, or column 0 below the lowest row
+  end
+  grid -> grid : Commit the new tile list
+  grid --> dashboard : Emit layoutChange once per L2-023
+  dashboard -> page : Persist the layout
+  page --> actor : Present the added tile
+end
+@enduml

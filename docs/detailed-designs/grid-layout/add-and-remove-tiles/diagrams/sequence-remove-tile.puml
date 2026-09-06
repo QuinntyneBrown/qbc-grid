@@ -1,0 +1,44 @@
+@startuml
+title UML sequence behaviour - Remove a tile
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - qbc-grid application" #E0F2FE
+  participant "DashboardPage" as page
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+end box
+
+actor -> page : Choose Remove tile
+page -> dashboard : Request removal by id
+dashboard -> grid : removeTile(id)
+alt id is not present
+  grid --> dashboard : No change and no emission per L2-022
+else id is present
+  opt an interaction on that tile is in progress
+    grid -> session : Cancel and release pointer capture per L2-022
+    session --> grid : Interaction discarded and overlay hidden
+  end
+  grid -> grid : Drop the tile, leaving every other geometry unchanged
+  grid --> dashboard : Emit layoutChange once per L2-023
+  dashboard -> page : Persist the layout
+  page --> actor : Present the reduced dashboard
+end
+@enduml

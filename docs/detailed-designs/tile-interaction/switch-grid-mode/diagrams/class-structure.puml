@@ -1,0 +1,58 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Switch the grid mode
+
+enum GridMode {
+  live
+  edit
+}
+
+enum GridInteractionKind {
+  move
+  resize
+}
+
+class GridComponent {
+  +mode: InputSignal<GridMode>
+  +tiles: Signal<readonly GridTile[]>
+  +editable: Signal<boolean>
+  +tabIndexOf(tile: GridTile): number
+  -onModeChange(mode: GridMode): void
+}
+
+class GridPointerSession {
+  +interaction: Signal<GridInteraction | null>
+  +start(kind: GridInteractionKind, tile: GridTile, event: PointerEvent): void
+  +cancel(): void
+  +release(): void
+}
+
+interface GridInteraction {
+  +kind: GridInteractionKind
+  +tileId: string
+  +origin: GridCell
+  +shadow: GridShadow
+}
+
+interface GridTile {
+  +id: string
+  +locked?: boolean
+}
+
+GridComponent --> GridMode : reads
+GridComponent --> GridPointerSession : owns
+GridComponent --> "*" GridTile : renders
+GridPointerSession --> GridInteraction : holds
+GridInteraction --> GridInteractionKind : has
+@enduml

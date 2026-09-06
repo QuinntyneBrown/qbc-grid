@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour - Restore a saved layout
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - qbc-grid application" #E0F2FE
+  participant "DashboardPage" as page
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - api library" #E0F2FE
+  participant "DASHBOARD_SERVICE" as service
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "normalizeLayout" as normalize
+end box
+box "Platform - desktop browser" #FFF4E5
+  database "Layout store" as store
+end box
+
+actor -> page : Open the dashboard
+page -> dashboard : Render
+dashboard -> service : load()
+service -> store : Read the saved JSON
+store --> service : Saved layout, or nothing
+service --> dashboard : Signal of tile records
+dashboard -> grid : Bind the loaded layout
+grid -> normalize : Repair per L2-025
+alt the layout needed no repair
+  normalize --> grid : Same tiles and repaired false
+  grid -> grid : Emit nothing per L2-024
+else the layout needed repair
+  normalize --> grid : Repaired tiles and repaired true
+  grid --> dashboard : Emit the repaired layout once per L2-026
+  dashboard -> service : save(repaired layout)
+end
+grid --> actor : Present the restored arrangement
+@enduml

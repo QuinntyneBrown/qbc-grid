@@ -1,0 +1,89 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Render the grid
+
+interface GridTile {
+  +id: string
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+  +locked?: boolean
+  +minCols?: number
+  +minRows?: number
+  +maxCols?: number
+  +maxRows?: number
+  +label?: string
+}
+
+interface GridCell {
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+interface GridMetrics {
+  +columns: number
+  +columnWidth: number
+  +rowHeight: number
+  +gap: number
+}
+
+interface Rectangle {
+  +left: number
+  +top: number
+  +width: number
+  +height: number
+}
+
+class GridComponent {
+  +layout: InputSignal<readonly GridTile[]>
+  +columns: InputSignal<number>
+  +rowHeight: InputSignal<number>
+  +gap: InputSignal<number>
+  +mode: InputSignal<GridMode>
+  +layoutChange: OutputEmitterRef<GridTile[]>
+  +tiles: Signal<readonly GridTile[]>
+  +metrics: Signal<GridMetrics>
+  +rowCount: Signal<number>
+  +addTile(tile: Partial<GridTile>): void
+  +removeTile(id: string): void
+}
+
+class GridTileTemplateDirective {
+  +templateRef: TemplateRef<GridTileContext>
+}
+
+interface GridTileContext {
+  +$implicit: GridTile
+}
+
+class coerceGridOptions <<function>> {
+  +coerceGridOptions(columns: number, rowHeight: number, gap: number): GridMetrics
+}
+
+class rectOf <<function>> {
+  +rectOf(cell: GridCell, metrics: GridMetrics): Rectangle
+}
+
+GridComponent --> "*" GridTile : renders
+GridComponent --> GridMetrics : publishes
+GridComponent ..> coerceGridOptions : coerces with
+GridComponent ..> rectOf : positions with
+GridComponent --> GridTileTemplateDirective : reads template from
+GridTileTemplateDirective --> GridTileContext : instantiates with
+GridTile --|> GridCell
+rectOf ..> Rectangle : returns
+@enduml
