@@ -215,6 +215,98 @@ export class DashboardPageObject {
     return raw === null || raw === '' ? null : JSON.parse(raw);
   }
 
+  get overlay(): Locator {
+    return this.page.locator('[data-qbc-overlay]');
+  }
+
+  get shadow(): Locator {
+    return this.page.locator('[data-qbc-shadow]');
+  }
+
+  async shadowIsValid(): Promise<boolean> {
+    return (await this.shadow.getAttribute('data-valid')) === 'true';
+  }
+
+  /** The dashed border is the channel that survives the shadow being rendered without colour. */
+  async shadowBorderStyle(): Promise<string> {
+    return this.shadow.evaluate((element) => getComputedStyle(element).borderTopStyle);
+  }
+
+  /** The distance from one column to the next, which is what a cell-sized drag travels. */
+  async columnPitch(): Promise<number> {
+    const metrics = await this.metrics();
+    return metrics.columnWidth + metrics.gap;
+  }
+
+  async rowPitch(): Promise<number> {
+    const metrics = await this.metrics();
+    return metrics.rowHeight + metrics.gap;
+  }
+
+  /** Drags a tile by a whole number of columns, which is how the criteria are written. */
+  async dragTileByColumns(id: string, columns: number): Promise<void> {
+    await this.dragTileBy(id, columns * (await this.columnPitch()), 0);
+  }
+
+  /** Presses a tile at its centre, without yet moving far enough to begin a drag. */
+  async pressTile(id: string): Promise<void> {
+    const box = await this.tile(id).boundingBox();
+    if (box === null) throw new Error(`No box for tile ${id}`);
+    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await this.page.mouse.down();
+  }
+
+  async movePointerBy(dx: number, dy: number, steps = 8): Promise<void> {
+    const position = await this.pointerPosition();
+    await this.page.mouse.move(position.x + dx, position.y + dy, { steps });
+  }
+
+  async releasePointer(): Promise<void> {
+    await this.page.mouse.up();
+  }
+
+  private async pointerPosition(): Promise<{ x: number; y: number }> {
+    return this.page.evaluate(() => {
+      const tracked = (window as unknown as { __qbcPointer?: { x: number; y: number } })
+        .__qbcPointer;
+      return tracked ?? { x: 0, y: 0 };
+    });
+  }
+
+  /** Tracks the pointer so a relative move can be expressed the way a criterion states it. */
+  async trackPointer(): Promise<void> {
+    await this.page.addInitScript(() => {
+      const store = window as unknown as { __qbcPointer?: { x: number; y: number } };
+      store.__qbcPointer = { x: 0, y: 0 };
+      addEventListener(
+        'pointermove',
+        (event) => {
+          store.__qbcPointer = { x: event.clientX, y: event.clientY };
+        },
+        true,
+      );
+    });
+  }
+
+  /** Drags a tile by a pixel offset, crossing the threshold on the way. */
+  async dragTileBy(id: string, dx: number, dy: number): Promise<void> {
+    await this.pressTile(id);
+    await this.movePointerBy(dx, dy);
+    await this.releasePointer();
+  }
+
+  /**
+   * Playwright's mouse produces neither `pointercancel` nor `lostpointercapture`, and both
+   * are terminal paths the grid has to answer, so the specification dispatches them.
+   */
+  async dispatchPointerEvent(id: string, type: 'pointercancel' | 'lostpointercapture'): Promise<void> {
+    await this.tile(id).evaluate((element, eventType) => {
+      element.dispatchEvent(
+        new PointerEvent(eventType, { bubbles: true, pointerId: 1, isPrimary: true }),
+      );
+    }, type);
+  }
+
   async emissions(): Promise<number> {
     const value = await this.page.locator('[data-qbc-emissions]').getAttribute('data-qbc-emissions');
     return Number(value);

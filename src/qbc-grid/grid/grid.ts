@@ -22,12 +22,29 @@ import { GridTile } from './grid-tile';
 import { GridTileTemplateDirective } from './grid-tile-template';
 import { GridWidthObserver } from './grid-width-observer';
 import { AddTileRequest } from './add-tile-request';
+import { GridCell } from './grid-cell';
+import { GridFrameScheduler } from './grid-frame-scheduler';
+import { GridGestureCache } from './grid-gesture-cache';
+import { GridInteraction } from './grid-interaction';
+import { GridInteractionKind } from './grid-interaction-kind';
+import { GridPointerSession } from './grid-pointer-session';
+import { GridShadow } from './grid-shadow';
 import { canPlace } from './can-place';
+import { cellAt } from './cell-at';
 import { clampTile } from './clamp-tile';
 import { coerceGridOptions } from './coerce-grid-options';
+import { rectOf } from './rect-of';
 import { findFreeCell } from './find-free-cell';
 import { layoutsEqual } from './layouts-equal';
 import { normalizeLayout } from './normalize-layout';
+
+/**
+ * Where a press belongs to the content rather than to the grid. A control, a field, an
+ * editable region, or a link owns its own input, and a press landing on one starts no
+ * gesture and suppresses nothing.
+ */
+const INTERACTIVE_DESCENDANTS =
+  'button, input, select, textarea, a[href], [contenteditable], [role="button"], [role="slider"], [role="textbox"]';
 
 /**
  * Arranges tiles on a cell-based grid. The layout reaches the grid as plain data and
@@ -55,6 +72,15 @@ export class GridComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
   private readonly widthObserver = new GridWidthObserver();
+  private readonly scheduler = new GridFrameScheduler();
+  private readonly session = new GridPointerSession({
+    measure: (tile, pressX, pressY) => this.measureGesture(tile, pressX, pressY),
+    propose: (kind, tile, event) => this.proposeCell(kind, tile, event),
+    paint: (interaction) => this.paintPreview(interaction),
+    clear: () => this.clearPreview(),
+    settle: (cell, tileId) => this.settleGesture(cell, tileId),
+  });
+  private dragged: HTMLElement | null = null;
 
   readonly layout = input.required<readonly GridTile[]>();
   readonly columns = input(12);
@@ -119,6 +145,15 @@ export class GridComponent {
     [...this.tiles()].sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id)),
   );
 
+  /** The rectangle a release would take, and whether those cells are free. */
+  readonly shadow = computed<GridShadow | null>(() => this.session.interaction()?.shadow ?? null);
+
+  /**
+   * The overlay is shown for the duration of an interaction and removed when it ends,
+   * whether the interaction committed or reverted.
+   */
+  readonly overlayVisible = computed(() => this.session.interaction() !== null);
+
   /** Whether the grid offers interaction at all. */
   readonly editable = computed(() => this.mode() === 'edit');
 
@@ -140,6 +175,118 @@ export class GridComponent {
     return this.isInteractive(tile) ? 0 : -1;
   }
 
+  /** Begins a press on a tile, which becomes a drag once the pointer has travelled far enough. */
+  protected onPointerDown(tile: GridTile, event: PointerEvent): void {
+    if (!this.isInteractive(tile)) return;
+    // A press that lands on a control or a field belongs to that descendant, not the grid.
+    if (this.ownsPress(event) === false) return;
+    this.session.press('move', tile, event);
+  }
+
+  /**
+   * Whether the press belongs to the grid rather than to something inside the tile.
+   *
+   * Restoring selection when a gesture ends does not leave projected content usable: the
+   * next attempt to select is a press and a drag across the same surface, it crosses the
+   * same threshold, and it starts another drag. So ownership is decided by where the press
+   * lands, and an interactive or editable descendant keeps its own input.
+   */
+  private ownsPress(event: PointerEvent): boolean {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return true;
+    return target.closest(INTERACTIVE_DESCENDANTS) === null;
+  }
+
+  private measureGesture(tile: GridTile, pressX: number, pressY: number): GridGestureCache {
+    const rect = this.host.nativeElement.getBoundingClientRect();
+    const metrics = this.metrics();
+    const origin = rectOf(tile, metrics);
+    return {
+      gridLeft: rect.left,
+      gridTop: rect.top,
+      columnWidth: metrics.columnWidth,
+      rowHeight: metrics.rowHeight,
+      gap: metrics.gap,
+      columns: metrics.columns,
+      grabOffsetX: pressX - rect.left - origin.left,
+      grabOffsetY: pressY - rect.top - origin.top,
+    };
+  }
+
+  /**
+   * Derives the cell a release would take from the cached measurement alone. No element is
+   * read here, which is what keeps a pointer event free of layout work.
+   */
+  private proposeCell(
+    kind: GridInteractionKind,
+    tile: GridTile,
+    event: PointerEvent,
+  ): GridInteraction {
+    const cache = this.session.gestureCache ?? this.measureGesture(tile, event.clientX, event.clientY);
+    const metrics = {
+      columns: cache.columns,
+      columnWidth: cache.columnWidth,
+      rowHeight: cache.rowHeight,
+      gap: cache.gap,
+    };
+    const left = event.clientX - cache.gridLeft - cache.grabOffsetX;
+    const top = event.clientY - cache.gridTop - cache.grabOffsetY;
+    const cell = cellAt(left, top, tile, metrics);
+    return {
+      kind,
+      tileId: tile.id,
+      origin: { x: tile.x, y: tile.y, cols: tile.cols, rows: tile.rows },
+      pointerId: event.pointerId,
+      shadow: { cell, valid: canPlace(this.tileState(), cell, cache.columns, tile.id) },
+    };
+  }
+
+  /**
+   * Schedules the frame that paints the preview. The tile follows the pointer in pixels
+   * while the shadow snaps to cells, so the two writes are the whole per-frame cost
+   * whatever the tile count.
+   */
+  private paintPreview(interaction: GridInteraction): void {
+    this.scheduler.schedule(() => {
+      const cache = this.session.gestureCache;
+      if (cache === null) return;
+      const element = this.tileElement(interaction.tileId);
+      if (element === null) return;
+      this.dragged = element;
+      element.classList.add('qbc-grid__tile--dragging');
+      const origin = rectOf(interaction.origin, this.metrics());
+      const target = rectOf(interaction.shadow.cell, this.metrics());
+      element.style.setProperty('--qbc-drag-offset-x', `${target.left - origin.left}px`);
+      element.style.setProperty('--qbc-drag-offset-y', `${target.top - origin.top}px`);
+    });
+  }
+
+  /** Drops everything the gesture put on the screen, including its compositor promotion. */
+  private clearPreview(): void {
+    this.scheduler.stop();
+    const element = this.dragged;
+    this.dragged = null;
+    if (element === null) return;
+    element.classList.remove('qbc-grid__tile--dragging');
+    element.style.removeProperty('--qbc-drag-offset-x');
+    element.style.removeProperty('--qbc-drag-offset-y');
+  }
+
+  /**
+   * Adopts the resolved cell, or leaves the committed geometry as it was. A drop landing
+   * on the cells it started from reaches `commit` and emits nothing, because nothing moved.
+   */
+  private settleGesture(cell: GridCell | null, tileId: string): void {
+    if (cell === null) return;
+    this.commit(
+      this.tileState().map((tile) =>
+        tile.id === tileId
+          ? { ...tile, x: cell.x, y: cell.y, cols: cell.cols, rows: cell.rows }
+          : tile,
+      ),
+    );
+  }
+
   /** The row the grid extends to, which is the row the lowest tile ends on. */
   readonly rowCount = computed(() =>
     this.tiles().reduce((lowest, tile) => Math.max(lowest, tile.y + tile.rows), 0),
@@ -147,7 +294,11 @@ export class GridComponent {
 
   constructor() {
     this.widthObserver.observe(this.host.nativeElement);
-    inject(DestroyRef).onDestroy(() => this.widthObserver.disconnect());
+    inject(DestroyRef).onDestroy(() => {
+      this.widthObserver.disconnect();
+      this.scheduler.stop();
+      this.session.destroy();
+    });
 
     // Repair is reported for the layout that needed it. The computation itself is pure and
     // lazy, so the emission cannot happen there; this watches its result instead.

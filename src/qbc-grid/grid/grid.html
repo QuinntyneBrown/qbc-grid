@@ -1,3 +1,20 @@
+@if (overlayVisible()) {
+  <div class="qbc-grid__overlay" data-qbc-overlay aria-hidden="true"></div>
+}
+
+@if (shadow(); as preview) {
+  <div
+    class="qbc-grid__shadow"
+    data-qbc-shadow
+    aria-hidden="true"
+    [attr.data-valid]="preview.valid"
+    [style.--qbc-tile-x]="preview.cell.x"
+    [style.--qbc-tile-y]="preview.cell.y"
+    [style.--qbc-tile-cols]="preview.cell.cols"
+    [style.--qbc-tile-rows]="preview.cell.rows"
+  ></div>
+}
+
 @for (tile of orderedTiles(); track tile.id) {
   <div
     class="qbc-grid__tile"
@@ -8,6 +25,7 @@
     [style.--qbc-tile-y]="tile.y"
     [style.--qbc-tile-cols]="tile.cols"
     [style.--qbc-tile-rows]="tile.rows"
+    (pointerdown)="onPointerDown(tile, $event)"
   >
     <ng-container
       [ngTemplateOutlet]="tileTemplate()?.templateRef ?? null"

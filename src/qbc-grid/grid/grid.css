@@ -89,3 +89,111 @@
   border-block-end: var(--qbc-border-width-emphasis, 2px) solid var(--qbc-color-accent, #4c9aff);
   border-end-end-radius: var(--qbc-radius-sm, 3px);
 }
+
+/*
+ * The overlay is drawn as two repeating gradients rather than one element per cell, so a
+ * twelve-by-forty grid costs two layers rather than four hundred and eighty nodes. It sits
+ * behind every tile and takes no pointer events, so nothing it covers becomes unreachable.
+ */
+.qbc-grid__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-origin: content-box;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--qbc-color-grid-line, #323b45) 0,
+      var(--qbc-color-grid-line, #323b45) var(--qbc-border-width-hairline, 1px),
+      transparent var(--qbc-border-width-hairline, 1px),
+      transparent calc(var(--qbc-grid-column-width) + var(--qbc-grid-gap))
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--qbc-color-grid-line, #323b45) 0,
+      var(--qbc-color-grid-line, #323b45) var(--qbc-border-width-hairline, 1px),
+      transparent var(--qbc-border-width-hairline, 1px),
+      transparent calc(var(--qbc-grid-row-height) + var(--qbc-grid-gap))
+    );
+}
+
+/*
+ * The line thickness comes from a border token rather than from the cell gap, because a
+ * grid configured with no gap would otherwise paint a band of zero width and show nothing
+ * at the moment an operator is choosing where a tile lands.
+ */
+@media (forced-colors: active) {
+  .qbc-grid__overlay {
+    forced-color-adjust: none;
+    background-image:
+      repeating-linear-gradient(
+        to right,
+        CanvasText 0,
+        CanvasText 1px,
+        transparent 1px,
+        transparent calc(var(--qbc-grid-column-width) + var(--qbc-grid-gap))
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        CanvasText 0,
+        CanvasText 1px,
+        transparent 1px,
+        transparent calc(var(--qbc-grid-row-height) + var(--qbc-grid-gap))
+      );
+  }
+}
+
+/*
+ * The shadow is the only warning a refused drop gives, so its state is carried by a border
+ * style as well as a colour and survives being rendered without colour.
+ */
+.qbc-grid__shadow {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 1;
+
+  inline-size: calc(
+    var(--qbc-tile-cols) * var(--qbc-grid-column-width) +
+      (var(--qbc-tile-cols) - 1) * var(--qbc-grid-gap)
+  );
+  block-size: calc(
+    var(--qbc-tile-rows) * var(--qbc-grid-row-height) +
+      (var(--qbc-tile-rows) - 1) * var(--qbc-grid-gap)
+  );
+  transform: translate3d(
+    calc(var(--qbc-tile-x) * (var(--qbc-grid-column-width) + var(--qbc-grid-gap))),
+    calc(var(--qbc-tile-y) * (var(--qbc-grid-row-height) + var(--qbc-grid-gap))),
+    0
+  );
+
+  border-radius: var(--qbc-radius-md, 6px);
+}
+
+.qbc-grid__shadow[data-valid='true'] {
+  background: var(--qbc-color-accent-soft, #1b3a5c);
+  border: var(--qbc-border-width-emphasis, 2px) solid var(--qbc-color-accent, #4c9aff);
+}
+
+.qbc-grid__shadow[data-valid='false'] {
+  background: var(--qbc-color-danger-soft, #4a1f24);
+  border: var(--qbc-border-width-emphasis, 2px) dashed var(--qbc-color-danger, #f2545b);
+}
+
+/*
+ * The dragged tile is raised for the gesture and released at its end. The promotion rides
+ * on the same class, so it is taken once and dropped once rather than every frame.
+ */
+.qbc-grid__tile {
+  z-index: 2;
+}
+
+.qbc-grid__tile--dragging {
+  z-index: var(--qbc-layer-drag, 10);
+  box-shadow: var(--qbc-elevation-drag, 0 8px 24px rgb(0 0 0 / 0.55));
+  will-change: transform;
+  user-select: none;
+}
