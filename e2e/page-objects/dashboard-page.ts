@@ -122,6 +122,30 @@ export class DashboardPageObject {
     await this.page.locator('[data-qbc-grid][data-mode="live"]').waitFor({ state: 'attached' });
   }
 
+  async addTile(): Promise<void> {
+    await this.page.locator('[data-qbc-add-tile]').click();
+  }
+
+  /** Removes a tile through the control inside its own projected content. */
+  async removeTile(id: string): Promise<void> {
+    await this.tile(id).locator('[data-qbc-remove-tile]').click();
+  }
+
+  /**
+   * Removes a tile without focus ever entering it, which is how a host removes a tile for
+   * a reason of its own while the operator is working somewhere else. A click would focus
+   * the control it presses, and the criterion is about the case where it does not.
+   */
+  async removeTileWithoutFocusing(id: string): Promise<void> {
+    await this.tile(id).locator('[data-qbc-remove-tile]').dispatchEvent('click');
+  }
+
+  /** Removes a tile from the keyboard, so focus is inside the subtree that disappears. */
+  async removeTileFromKeyboard(id: string): Promise<void> {
+    await this.tile(id).locator('[data-qbc-remove-tile]').focus();
+    await this.page.keyboard.press('Enter');
+  }
+
   async toggleLockOf(id: string): Promise<void> {
     await this.tile(id).locator('[data-qbc-lock-toggle]').click();
   }

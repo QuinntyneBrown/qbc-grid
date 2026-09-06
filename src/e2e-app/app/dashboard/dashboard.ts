@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { GridComponent, GridMode, GridTile, GridTileTemplateDirective } from 'qbc-grid';
 
 import { DASHBOARD_SERVICE } from './dashboard-service.token';
@@ -25,10 +31,27 @@ function numberParam(params: URLSearchParams, name: string): number {
 })
 export class DashboardPage {
   private readonly service = inject(DASHBOARD_SERVICE);
+  private readonly grid = viewChild.required(GridComponent);
+  private added = 0;
   private readonly params = new URLSearchParams(location.search);
 
   readonly layout = this.service.load();
   readonly mode = signal<GridMode>('live');
+
+  /** `addTile` and `removeTile` are imperative, so the host reaches them through the view. */
+  onAddTile(): void {
+    this.added += 1;
+    this.grid().addTile({
+      id: `added-${this.added}`,
+      cols: 3,
+      rows: 2,
+      label: `Added ${this.added}`,
+    });
+  }
+
+  onRemoveTile(id: string): void {
+    this.grid().removeTile(id);
+  }
 
   toggleMode(): void {
     this.mode.update((mode) => (mode === 'edit' ? 'live' : 'edit'));

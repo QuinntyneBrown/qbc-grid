@@ -8,6 +8,7 @@
   <button type="button" data-qbc-mode-toggle (click)="toggleMode()">
     {{ mode() === 'edit' ? 'Leave edit mode' : 'Enter edit mode' }}
   </button>
+  <button type="button" data-qbc-add-tile (click)="onAddTile()">Add tile</button>
   <button type="button" data-qbc-mutate-layout (click)="mutateLastLayout()">
     Mutate last layout
   </button>
@@ -26,5 +27,6 @@
     <button type="button" data-qbc-lock-toggle (click)="toggleLock(tile.id)">
       {{ tile.locked ? 'Unlock' : 'Lock' }}
     </button>
+    <button type="button" data-qbc-remove-tile (click)="onRemoveTile(tile.id)">Remove</button>
   </div>
 </qbc-grid>

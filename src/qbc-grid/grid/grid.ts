@@ -5,6 +5,8 @@ import {
   DestroyRef,
   ElementRef,
   Signal,
+  Injector,
+  afterNextRender,
   computed,
   contentChild,
   effect,
@@ -19,7 +21,12 @@ import { GridMode } from './grid-mode';
 import { GridTile } from './grid-tile';
 import { GridTileTemplateDirective } from './grid-tile-template';
 import { GridWidthObserver } from './grid-width-observer';
+import { AddTileRequest } from './add-tile-request';
+import { canPlace } from './can-place';
+import { clampTile } from './clamp-tile';
 import { coerceGridOptions } from './coerce-grid-options';
+import { findFreeCell } from './find-free-cell';
+import { layoutsEqual } from './layouts-equal';
 import { normalizeLayout } from './normalize-layout';
 
 /**
@@ -46,6 +53,7 @@ import { normalizeLayout } from './normalize-layout';
 })
 export class GridComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
   private readonly widthObserver = new GridWidthObserver();
 
   readonly layout = input.required<readonly GridTile[]>();
@@ -147,6 +155,89 @@ export class GridComponent {
       const repair = this.repair();
       if (repair.repaired) untracked(() => this.layoutChange.emit(this.snapshot(repair.tiles)));
     });
+  }
+
+  /**
+   * Adds a tile. A request naming a position takes it when the cells are free and falls
+   * through to the first fitting position when they are not, so an add never overlaps and
+   * never silently fails. A request repeating an id is refused outright, because the id is
+   * how a host addresses the tile it already has.
+   */
+  addTile(request: AddTileRequest): void {
+    const tiles = this.tileState();
+    if (tiles.some((tile) => tile.id === request.id)) return;
+
+    const columns = this.metrics().columns;
+    const clamped = clampTile({ ...request, x: request.x ?? 0, y: request.y ?? 0 }, columns);
+
+    const asked =
+      request.x !== undefined && request.y !== undefined
+        ? { x: clamped.x, y: clamped.y, cols: clamped.cols, rows: clamped.rows }
+        : null;
+
+    const cell =
+      asked !== null && canPlace(tiles, asked, columns)
+        ? asked
+        : findFreeCell(tiles, clamped.cols, clamped.rows, columns);
+
+    this.commit([...tiles, { ...clamped, ...cell }]);
+  }
+
+  /**
+   * Removes the tile with the given id, leaving every other geometry as it was. An id the
+   * grid does not hold is a no-op rather than an error.
+   */
+  removeTile(id: string): void {
+    const tiles = this.tileState();
+    if (!tiles.some((tile) => tile.id === id)) return;
+
+    const destination = this.focusDestinationFor(id);
+    this.commit(tiles.filter((tile) => tile.id !== id));
+    if (destination !== null) {
+      afterNextRender({ write: () => destination() }, { injector: this.injector });
+    }
+  }
+
+  /**
+   * Where focus goes when a removal takes it, and `null` when the removal does not.
+   *
+   * The grid renders no chrome of its own, so a removal control lives inside the tile's
+   * own content and disappears with it. Focus would otherwise fall to the document and the
+   * operator would lose their place. It is moved only when the removed subtree held it: a
+   * removal triggered from somewhere else leaves focus where the operator put it.
+   */
+  private focusDestinationFor(id: string): (() => void) | null {
+    const active = this.host.nativeElement.ownerDocument.activeElement;
+    const removed = this.tileElement(id);
+    if (removed === null || active === null || !removed.contains(active)) return null;
+
+    const ordered = this.orderedTiles();
+    const index = ordered.findIndex((tile) => tile.id === id);
+    const following = ordered.slice(index + 1).find((tile) => this.isInteractive(tile));
+    const preceding = [...ordered.slice(0, index)].reverse().find((tile) => this.isInteractive(tile));
+    const neighbour = following ?? preceding;
+
+    return () => {
+      const target =
+        neighbour === undefined ? this.host.nativeElement : this.tileElement(neighbour.id);
+      (target ?? this.host.nativeElement).focus();
+    };
+  }
+
+  private tileElement(id: string): HTMLElement | null {
+    return this.host.nativeElement.querySelector<HTMLElement>(
+      `[data-qbc-tile="${CSS.escape(id)}"]`,
+    );
+  }
+
+  /**
+   * The one gate every change routes through. It adopts the proposed tiles and emits only
+   * when something a host can observe moved.
+   */
+  private commit(next: readonly GridTile[]): void {
+    if (layoutsEqual(this.tileState(), next)) return;
+    this.tileState.set(next);
+    this.layoutChange.emit(this.snapshot(next));
   }
 
   /**
