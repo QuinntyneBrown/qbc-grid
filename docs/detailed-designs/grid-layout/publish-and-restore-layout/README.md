@@ -88,7 +88,10 @@ service contract.
   `save`. It carries no HTTP type, so `domain` stays free of transport concerns. `load`
   returns a signal rather than a resolved array, which browser storage could supply
   synchronously; the signal shape is what lets a later server-backed adapter start empty and
-  fill when the response arrives. The grid needs no knowledge of that: a layout arriving
+  fill when the response arrives. Its `readonly GridTile[]` is what the contract intends, not
+  what an adapter can prove: storage hands back parsed JSON, and
+  [`normalize-supplied-layout`](../normalize-supplied-layout/) is where that difference is
+  reconciled rather than assumed away. The grid needs no knowledge of that: a layout arriving
   late is an ordinary change of the `layout` input, and an empty layout on the way there
   needs no repair and emits nothing.
 - **`DASHBOARD_SERVICE`** — the `InjectionToken` every consumer injects. The interface,

@@ -56,6 +56,19 @@ without limit.
 `GridComponent` runs `normalizeLayout` on every change of the `layout` input, as the source
 computation of the `tiles` linked signal described in [`render-grid`](../render-grid/).
 
+The typed input is a promise to the compiler, not a fact about the value. `JSON.parse`
+returns `any`, and `any` assigns to `readonly GridTile[]` without a word of complaint, so a
+layout read from storage arrives wearing a type it was never checked against. That is
+precisely how a record with a `y` of `"abc"`, a duplicate `id`, or no `id` at all reaches a
+grid whose input signature says such a thing cannot exist. Keeping the input typed serves
+the consumer writing against the library; accepting `unknown` at the repair boundary serves
+the truth, which is that nothing between storage and the grid ever verified the claim.
+
+The fixtures the malformed criteria need are therefore declared as stored JSON rather than
+as `GridTile[]`, since a fixture typed as the latter could not express a record the type
+forbids — and a specification unable to state its own precondition would quietly stop
+testing repair at all.
+
 The emission cannot happen there. A signal computation is pure and lazy: emitting an output
 from inside one would fire at whatever moment something first read the signal, or not at
 all. So the computation only produces the `LayoutRepair`, and a small effect watches its
@@ -86,9 +99,9 @@ the [tree root](../../README.md#where-the-c4-levels-live).
 
 ### Class structure
 
-`normalizeLayout` accepts `unknown` rather than `GridTile[]`, because a stored layout has
-no type guarantee at the boundary. `LayoutRepair` carries both the result and the fact of
-the change.
+`normalizeLayout` accepts `unknown` while every path that feeds it — the `layout` input and
+`IDashboardService.load` — is typed `readonly GridTile[]`. Both are right, and the gap
+between them is the point of the feature.
 
 ![Class diagram for normalizing a supplied layout](diagrams/class-structure.png)
 
