@@ -57,8 +57,12 @@ service contract.
   [`theme-the-grid`](../../library-delivery/theme-the-grid/#the-three-token-configurations)
   can compare a themed render against an unthemed one.
 
-  It also accepts `columns`, `rowHeight`, and `gap` on the URL and binds whatever it reads
-  straight through to the grid, without parsing, guarding, or defaulting. Five criteria fix
+  It also accepts `columns`, `rowHeight`, and `gap` on the URL and binds what it reads
+  straight through to the grid. A parameter arrives as text and the input takes a number, so
+  the page converts and does nothing else — no clamping, no guarding, no default. `Number`
+  is the right conversion precisely because it keeps what the criteria depend on: `7.6` stays
+  fractional, `-4` stays negative, and anything unparseable becomes `NaN` rather than
+  something tidier. Five criteria fix
   those values and three of them fix values that are wrong on purpose — `columns` of 0,
   `columns` of 7.6, `gap` of -4 with `rowHeight` of `NaN` — to watch the grid coerce them.
   A page that repaired a bad value before the grid saw it would leave those criteria passing
@@ -102,6 +106,15 @@ service contract.
   layout from a `fixture` parameter on the URL and falls back to the ordinary dashboard when
   none is named, so an acceptance test never depends on stored state and never on the
   leftovers of the test before it.
+
+  A name that is given and not recognised is a different matter, and it throws. Falling back
+  there would run a specification against the ordinary dashboard while its own text said
+  otherwise, and forty-two criteria turn on the arrangement being the one they describe. The
+  kind ones would fail with a confusing message about the wrong layout; the dangerous ones
+  would pass, because a criterion like *an empty grid places a 3-by-2 tile at column 0 row 0*
+  is also true of several arrangements that are not empty. A typo in a fixture name is a
+  defect in the specification, and it should read as one rather than as a defect in the
+  grid.
 - **`layout-fixtures.ts`** — the named layouts, declared once beside the mock. Forty-two of
   the acceptance criteria open by fixing a starting arrangement — an empty grid, a grid of
   three tiles, a first row occupied through column 5, a tile at column 9 of twelve, sixty
