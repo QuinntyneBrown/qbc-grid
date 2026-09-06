@@ -125,6 +125,7 @@ grid's published surface:
 |-----------|---------|---------|
 | `data-qbc-emissions` | the demonstration page | how many layouts the grid has emitted since load |
 | `data-qbc-last-layout` | the demonstration page | the most recent emitted layout, as JSON |
+| `data-qbc-widget-instance` | each projected widget | the instance value it took at construction |
 
 Seven criteria act through a control rather than a gesture — the host adds a tile, removes
 one by id, sets the mode, or mutates a record it was handed. Those controls belong to the
