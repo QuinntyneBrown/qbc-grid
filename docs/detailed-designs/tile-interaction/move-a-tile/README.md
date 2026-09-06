@@ -11,9 +11,12 @@ the rectangle marking where the tile would land — snaps to whole cells, so the
 sees the grid's answer rather than the pointer's position. Separating them is what lets
 the gesture be both smooth and exact: pixels for the hand, cells for the result.
 
-The shadow is also the whole of the feedback. It shows a valid target in the accent
-colour and an invalid one in the danger colour, and what it shows before release is
-exactly what happens on release. There is no push, no swap, and no reflow: the grid never
+The shadow is also the whole of the feedback, which is why colour cannot carry it alone. A
+valid target takes the accent colour and a solid border; an invalid one takes the danger
+colour and a dashed border, so the two stay apart for an operator who cannot separate red
+from green. The grid resolves no collisions, so an operator who misreads the shadow gets a
+tile snapping home with nothing to explain why — the one signal has to be legible to
+everyone watching it. What it shows before release is exactly what happens on release. There is no push, no swap, and no reflow: the grid never
 rearranges other tiles to make room. A drop onto occupied cells is refused and the tile
 animates home.
 
@@ -135,7 +138,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | `L2-009` | `L1-004` | The grid shall begin a drag only after the pointer has travelled 3 px from the press point, shall not suppress interaction with projected content below that threshold, and shall suppress text selection and the browser's native drag for the duration of a gesture and no longer. |
 | `L2-010` | `L1-004` | While a drag is in progress the grid shall translate the dragged tile with the pointer in pixels and shall paint it above every other tile with the drag elevation, and shall hold that elevation and its compositor promotion for the duration of the gesture and no longer. |
 | `L2-011` | `L1-004` | While a drag is in progress the grid shall draw a shadow at the cell nearest the dragged tile top-left corner, with `x` clamped to `[0, columns - cols]` and `y` clamped to at least 0. |
-| `L2-012` | `L1-004` | The grid shall render the shadow in its invalid state when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |
+| `L2-012` | `L1-004` | The grid shall render the shadow in an invalid state that differs from the valid one in more than colour when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |
 | `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, release pointer capture, and emit the complete layout exactly once when the adopted geometry differs from the geometry the tile held. |
 | `L2-014` | `L1-004` | The grid shall revert a drag and release pointer capture on `Escape`, on `pointercancel`, and when the window loses focus, and shall remove the shadow and the overlay on each of them. |
 
