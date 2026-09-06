@@ -57,3 +57,35 @@
   border-radius: var(--qbc-radius-md, 6px);
   box-shadow: var(--qbc-elevation-resting, 0 1px 2px rgb(0 0 0 / 0.4));
 }
+
+/*
+ * The affordances hang off the mode the host set and the lock the tile carries, so a
+ * change of either reveals or withdraws them without the component touching an element.
+ */
+:host([data-mode='edit']) .qbc-grid__tile:not([data-locked]) {
+  cursor: move;
+}
+
+/*
+ * The ring hangs on :focus-visible rather than :focus, so a tile keeps focus after a
+ * pointer press without drawing an indicator the operator did not ask for.
+ */
+.qbc-grid__tile:focus-visible {
+  outline: var(--qbc-border-width-emphasis, 2px) solid var(--qbc-color-focus, #7cc4ff);
+  outline-offset: var(--qbc-space-1, 4px);
+}
+
+.qbc-grid__handle {
+  position: absolute;
+  inset-block-end: var(--qbc-space-1, 4px);
+  inset-inline-end: var(--qbc-space-1, 4px);
+
+  /* The target floor is 24px, whatever the token says the handle should look like. */
+  inline-size: max(24px, var(--qbc-size-handle, 24px));
+  block-size: max(24px, var(--qbc-size-handle, 24px));
+
+  cursor: nwse-resize;
+  border-inline-end: var(--qbc-border-width-emphasis, 2px) solid var(--qbc-color-accent, #4c9aff);
+  border-block-end: var(--qbc-border-width-emphasis, 2px) solid var(--qbc-color-accent, #4c9aff);
+  border-end-end-radius: var(--qbc-radius-sm, 3px);
+}

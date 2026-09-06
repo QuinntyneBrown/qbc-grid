@@ -111,6 +111,27 @@ export class GridComponent {
     [...this.tiles()].sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id)),
   );
 
+  /** Whether the grid offers interaction at all. */
+  readonly editable = computed(() => this.mode() === 'edit');
+
+  /**
+   * The one predicate the pointer path, the keyboard path, and the tab order all consult.
+   * A locked tile and `live` mode are the same answer here, which is what keeps the three
+   * from drifting apart.
+   */
+  isInteractive(tile: GridTile): boolean {
+    return this.editable() && tile.locked !== true;
+  }
+
+  /**
+   * Tiles enter the tab order only where they can be operated. The order itself comes from
+   * document order, which `orderedTiles` already sorts into reading order, so no positive
+   * tabindex is needed to make it row-major.
+   */
+  protected tabIndexOf(tile: GridTile): number {
+    return this.isInteractive(tile) ? 0 : -1;
+  }
+
   /** The row the grid extends to, which is the row the lowest tile ends on. */
   readonly rowCount = computed(() =>
     this.tiles().reduce((lowest, tile) => Math.max(lowest, tile.y + tile.rows), 0),

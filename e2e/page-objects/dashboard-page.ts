@@ -112,6 +112,73 @@ export class DashboardPageObject {
     );
   }
 
+  async enterEditMode(): Promise<void> {
+    await this.page.locator('[data-qbc-mode-toggle]').click();
+    await this.page.locator('[data-qbc-grid][data-mode="edit"]').waitFor({ state: 'attached' });
+  }
+
+  async leaveEditMode(): Promise<void> {
+    await this.page.locator('[data-qbc-mode-toggle]').click();
+    await this.page.locator('[data-qbc-grid][data-mode="live"]').waitFor({ state: 'attached' });
+  }
+
+  async toggleLockOf(id: string): Promise<void> {
+    await this.tile(id).locator('[data-qbc-lock-toggle]').click();
+  }
+
+  handleOf(id: string): Locator {
+    return this.tile(id).locator('[data-qbc-handle]');
+  }
+
+  async tabIndexOf(id: string): Promise<string | null> {
+    return this.tile(id).getAttribute('tabindex');
+  }
+
+  /** The id of the tile that currently holds focus, or null when no tile does. */
+  async focusedTile(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const active = document.activeElement;
+      return active?.closest('[data-qbc-tile]')?.getAttribute('data-qbc-tile') ?? null;
+    });
+  }
+
+  /**
+   * The id of the tile only when the tile element itself holds focus. A tile's projected
+   * content carries controls of its own that stay tabbable, so the tab order interleaves
+   * tiles with their contents; this reports the tiles.
+   */
+  async focusedTileElement(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const active = document.activeElement;
+      return active?.matches('[data-qbc-tile]') === true
+        ? active.getAttribute('data-qbc-tile')
+        : null;
+    });
+  }
+
+  /** Tabs forward, collecting the tile elements focus lands on, until it has `count`. */
+  async tabThroughTiles(count: number, limit = 20): Promise<string[]> {
+    await this.page.locator('[data-qbc-mutate-layout]').focus();
+    const visited: string[] = [];
+    for (let step = 0; step < limit && visited.length < count; step += 1) {
+      await this.page.keyboard.press('Tab');
+      const id = await this.focusedTileElement();
+      if (id !== null) visited.push(id);
+    }
+    return visited;
+  }
+
+  /** Whether the focused tile is drawing the focus indicator. */
+  async focusRingVisible(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const active = document.activeElement;
+      if (active === null) return false;
+      const tile = active.closest('[data-qbc-tile]');
+      if (tile === null) return false;
+      return tile.matches(':focus-visible');
+    });
+  }
+
   /** Drives the page into mutating the last layout the grid handed it. */
   async mutateLastLayout(): Promise<void> {
     await this.page.locator('[data-qbc-mutate-layout]').click();

@@ -12,6 +12,16 @@
   clip-path: inset(50%);
 }
 
+.controls {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
 .widget {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
   padding: var(--qbc-space-2, 8px);
 }

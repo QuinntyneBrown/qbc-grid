@@ -4,7 +4,14 @@
   [attr.data-qbc-last-layout]="lastLayout()"
 ></div>
 
-<button type="button" data-qbc-mutate-layout (click)="mutateLastLayout()">Mutate last layout</button>
+<div class="controls">
+  <button type="button" data-qbc-mode-toggle (click)="toggleMode()">
+    {{ mode() === 'edit' ? 'Leave edit mode' : 'Enter edit mode' }}
+  </button>
+  <button type="button" data-qbc-mutate-layout (click)="mutateLastLayout()">
+    Mutate last layout
+  </button>
+</div>
 
 <qbc-grid
   [layout]="layout()"
@@ -14,5 +21,10 @@
   [mode]="mode()"
   (layoutChange)="onLayoutChange($event)"
 >
-  <div *qbcGridTile="let tile" class="widget">{{ tile.label ?? tile.id }}</div>
+  <div *qbcGridTile="let tile" class="widget">
+    <span class="widget__label">{{ tile.label ?? tile.id }}</span>
+    <button type="button" data-qbc-lock-toggle (click)="toggleLock(tile.id)">
+      {{ tile.locked ? 'Unlock' : 'Lock' }}
+    </button>
+  </div>
 </qbc-grid>

@@ -3,6 +3,7 @@
     class="qbc-grid__tile"
     [attr.data-qbc-tile]="tile.id"
     [attr.data-locked]="tile.locked ? '' : null"
+    [attr.tabindex]="tabIndexOf(tile)"
     [style.--qbc-tile-x]="tile.x"
     [style.--qbc-tile-y]="tile.y"
     [style.--qbc-tile-cols]="tile.cols"
@@ -12,5 +13,8 @@
       [ngTemplateOutlet]="tileTemplate()?.templateRef ?? null"
       [ngTemplateOutletContext]="{ $implicit: tile }"
     />
+    @if (isInteractive(tile)) {
+      <span class="qbc-grid__handle" data-qbc-handle aria-hidden="true"></span>
+    }
   </div>
 }

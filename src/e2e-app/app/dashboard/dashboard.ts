@@ -30,6 +30,23 @@ export class DashboardPage {
   readonly layout = this.service.load();
   readonly mode = signal<GridMode>('live');
 
+  toggleMode(): void {
+    this.mode.update((mode) => (mode === 'edit' ? 'live' : 'edit'));
+  }
+
+  /**
+   * A lock is a property of a tile, so the page changes the record it holds and hands the
+   * grid a new layout. `L2-008` asks what happens when a tile is unlocked while the grid is
+   * in edit mode, which is a transition rather than a state.
+   */
+  toggleLock(id: string): void {
+    this.service.save(
+      this.layout().map((tile) =>
+        tile.id === id ? { ...tile, locked: tile.locked !== true } : tile,
+      ),
+    );
+  }
+
   readonly columns = numberParam(this.params, 'columns');
   readonly rowHeight = numberParam(this.params, 'rowHeight');
   readonly gap = numberParam(this.params, 'gap');
