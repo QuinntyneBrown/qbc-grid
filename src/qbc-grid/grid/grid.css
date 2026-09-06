@@ -192,6 +192,9 @@
 }
 
 .qbc-grid__tile--dragging {
+  /* A resize follows the pointer in pixels, as a move follows it in offset. */
+  inline-size: var(--qbc-drag-width, auto);
+  block-size: var(--qbc-drag-height, auto);
   z-index: var(--qbc-layer-drag, 10);
   box-shadow: var(--qbc-elevation-drag, 0 8px 24px rgb(0 0 0 / 0.55));
   will-change: transform;

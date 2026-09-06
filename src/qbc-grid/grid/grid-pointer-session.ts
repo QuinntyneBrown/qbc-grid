@@ -20,7 +20,12 @@ export interface GridSessionHost {
    * past the threshold, and a pointer arriving in one large step is already far from the
    * corner the offset describes.
    */
-  measure(tile: GridTile, pressX: number, pressY: number): GridGestureCache;
+  measure(
+    kind: GridInteractionKind,
+    tile: GridTile,
+    pressX: number,
+    pressY: number,
+  ): GridGestureCache;
   /** Derives the cell a release would take, and whether it is free. */
   propose(kind: GridInteractionKind, tile: GridTile, event: PointerEvent): GridInteraction;
   /** Paints the preview for the frame. */
@@ -121,7 +126,7 @@ export class GridPointerSession {
 
   private activate(): void {
     this.phase = 'active';
-    this.cache = this.host.measure(this.tile!, this.startX, this.startY);
+    this.cache = this.host.measure(this.kind, this.tile!, this.startX, this.startY);
 
     // Capture routes every later event for this pointer to the tile even once the cursor
     // has left it, which is why no window-level pointer listener is needed past this point.

@@ -32,7 +32,12 @@
       [ngTemplateOutletContext]="{ $implicit: tile }"
     />
     @if (isInteractive(tile)) {
-      <span class="qbc-grid__handle" data-qbc-handle aria-hidden="true"></span>
+      <span
+        class="qbc-grid__handle"
+        data-qbc-handle
+        aria-hidden="true"
+        (pointerdown)="onHandlePointerDown(tile, $event)"
+      ></span>
     }
   </div>
 }

@@ -288,6 +288,35 @@ export class DashboardPageObject {
     });
   }
 
+  /** The cell geometry the shadow currently previews. */
+  async shadowGeometry(): Promise<TileGeometryReading> {
+    return this.shadow.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const read = (name: string) => Number.parseFloat(style.getPropertyValue(name));
+      return {
+        x: read('--qbc-tile-x'),
+        y: read('--qbc-tile-y'),
+        cols: read('--qbc-tile-cols'),
+        rows: read('--qbc-tile-rows'),
+      };
+    });
+  }
+
+  /** Presses the resize handle at the centre of its target. */
+  async pressHandle(id: string): Promise<void> {
+    const box = await this.handleOf(id).boundingBox();
+    if (box === null) throw new Error(`No handle for tile ${id}`);
+    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await this.page.mouse.down();
+  }
+
+  /** Resizes a tile by dragging its handle by a pixel offset. */
+  async resizeTileBy(id: string, dx: number, dy: number): Promise<void> {
+    await this.pressHandle(id);
+    await this.movePointerBy(dx, dy);
+    await this.releasePointer();
+  }
+
   /** Drags a tile by a pixel offset, crossing the threshold on the way. */
   async dragTileBy(id: string, dx: number, dy: number): Promise<void> {
     await this.pressTile(id);

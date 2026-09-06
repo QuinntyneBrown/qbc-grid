@@ -31,6 +31,8 @@ import { GridPointerSession } from './grid-pointer-session';
 import { GridShadow } from './grid-shadow';
 import { canPlace } from './can-place';
 import { cellAt } from './cell-at';
+import { clampSpan } from './clamp-span';
+import { spanAt } from './span-at';
 import { clampTile } from './clamp-tile';
 import { coerceGridOptions } from './coerce-grid-options';
 import { rectOf } from './rect-of';
@@ -74,7 +76,7 @@ export class GridComponent {
   private readonly widthObserver = new GridWidthObserver();
   private readonly scheduler = new GridFrameScheduler();
   private readonly session = new GridPointerSession({
-    measure: (tile, pressX, pressY) => this.measureGesture(tile, pressX, pressY),
+    measure: (kind, tile, pressX, pressY) => this.measureGesture(kind, tile, pressX, pressY),
     propose: (kind, tile, event) => this.proposeCell(kind, tile, event),
     paint: (interaction) => this.paintPreview(interaction),
     clear: () => this.clearPreview(),
@@ -184,6 +186,16 @@ export class GridComponent {
   }
 
   /**
+   * Begins a resize. The press stops here rather than reaching the tile beneath it, so a
+   * press on the handle starts a resize and never a move.
+   */
+  protected onHandlePointerDown(tile: GridTile, event: PointerEvent): void {
+    if (!this.isInteractive(tile)) return;
+    event.stopPropagation();
+    this.session.press('resize', tile, event);
+  }
+
+  /**
    * Whether the press belongs to the grid rather than to something inside the tile.
    *
    * Restoring selection when a gesture ends does not leave projected content usable: the
@@ -197,10 +209,23 @@ export class GridComponent {
     return target.closest(INTERACTIVE_DESCENDANTS) === null;
   }
 
-  private measureGesture(tile: GridTile, pressX: number, pressY: number): GridGestureCache {
+  private measureGesture(
+    kind: GridInteractionKind,
+    tile: GridTile,
+    pressX: number,
+    pressY: number,
+  ): GridGestureCache {
     const rect = this.host.nativeElement.getBoundingClientRect();
     const metrics = this.metrics();
     const origin = rectOf(tile, metrics);
+
+    // A move measures the press against the corner the tile carries; a resize measures it
+    // against the corner the operator drags. That is what lets a press anywhere inside the
+    // handle's target start the gesture at the span the tile already has, rather than
+    // jumping it by the distance between the press and the corner.
+    const anchorX = kind === 'move' ? origin.left : origin.left + origin.width;
+    const anchorY = kind === 'move' ? origin.top : origin.top + origin.height;
+
     return {
       gridLeft: rect.left,
       gridTop: rect.top,
@@ -208,8 +233,8 @@ export class GridComponent {
       rowHeight: metrics.rowHeight,
       gap: metrics.gap,
       columns: metrics.columns,
-      grabOffsetX: pressX - rect.left - origin.left,
-      grabOffsetY: pressY - rect.top - origin.top,
+      grabOffsetX: pressX - rect.left - anchorX,
+      grabOffsetY: pressY - rect.top - anchorY,
     };
   }
 
@@ -222,20 +247,35 @@ export class GridComponent {
     tile: GridTile,
     event: PointerEvent,
   ): GridInteraction {
-    const cache = this.session.gestureCache ?? this.measureGesture(tile, event.clientX, event.clientY);
+    const cache =
+      this.session.gestureCache ??
+      this.measureGesture(kind, tile, event.clientX, event.clientY);
     const metrics = {
       columns: cache.columns,
       columnWidth: cache.columnWidth,
       rowHeight: cache.rowHeight,
       gap: cache.gap,
     };
-    const left = event.clientX - cache.gridLeft - cache.grabOffsetX;
-    const top = event.clientY - cache.gridTop - cache.grabOffsetY;
-    const cell = cellAt(left, top, tile, metrics);
+    const origin = { x: tile.x, y: tile.y, cols: tile.cols, rows: tile.rows };
+
+    let cell: GridCell;
+    if (kind === 'move') {
+      const left = event.clientX - cache.gridLeft - cache.grabOffsetX;
+      const top = event.clientY - cache.gridTop - cache.grabOffsetY;
+      cell = cellAt(left, top, origin, metrics);
+    } else {
+      const box = rectOf(origin, metrics);
+      const width = event.clientX - cache.gridLeft - cache.grabOffsetX - box.left;
+      const height = event.clientY - cache.gridTop - cache.grabOffsetY - box.top;
+      // Clamping never invalidates the shadow: a span held at a limit is one the operator
+      // can commit, where a span reaching over a neighbour is not.
+      cell = clampSpan(tile, spanAt(width, height, origin, metrics), cache.columns);
+    }
+
     return {
       kind,
       tileId: tile.id,
-      origin: { x: tile.x, y: tile.y, cols: tile.cols, rows: tile.rows },
+      origin,
       pointerId: event.pointerId,
       shadow: { cell, valid: canPlace(this.tileState(), cell, cache.columns, tile.id) },
     };
@@ -256,8 +296,13 @@ export class GridComponent {
       element.classList.add('qbc-grid__tile--dragging');
       const origin = rectOf(interaction.origin, this.metrics());
       const target = rectOf(interaction.shadow.cell, this.metrics());
-      element.style.setProperty('--qbc-drag-offset-x', `${target.left - origin.left}px`);
-      element.style.setProperty('--qbc-drag-offset-y', `${target.top - origin.top}px`);
+      if (interaction.kind === 'move') {
+        element.style.setProperty('--qbc-drag-offset-x', `${target.left - origin.left}px`);
+        element.style.setProperty('--qbc-drag-offset-y', `${target.top - origin.top}px`);
+      } else {
+        element.style.setProperty('--qbc-drag-width', `${target.width}px`);
+        element.style.setProperty('--qbc-drag-height', `${target.height}px`);
+      }
     });
   }
 
@@ -270,6 +315,8 @@ export class GridComponent {
     element.classList.remove('qbc-grid__tile--dragging');
     element.style.removeProperty('--qbc-drag-offset-x');
     element.style.removeProperty('--qbc-drag-offset-y');
+    element.style.removeProperty('--qbc-drag-width');
+    element.style.removeProperty('--qbc-drag-height');
   }
 
   /**
