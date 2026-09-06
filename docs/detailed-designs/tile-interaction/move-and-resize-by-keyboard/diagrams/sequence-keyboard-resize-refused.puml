@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour - Resize by keyboard, and a refused command
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "gridKeyboardCandidate" as keys
+  participant "clampTile" as clamp
+  participant "canPlace" as canplace
+  participant "announcementFor" as announce
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+  participant "Assistive technology" as at
+end box
+
+actor -> dom : Press Shift with ArrowRight on a focused tile
+dom -> grid : keydown
+grid -> keys : Map the key to a wider span per L2-028
+keys -> clamp : Apply minCols, minRows, maxCols, and the column bound per L2-017
+clamp --> keys : Clamped span
+keys --> grid : Candidate span
+
+alt the candidate is free and differs from the current span
+  grid -> canplace : Test the candidate
+  canplace --> grid : Free
+  grid -> grid : Adopt the span and emit layoutChange once
+  grid -> announce : Compose the accepted announcement
+  announce --> grid : Tile name with its new column and row span
+else the candidate is blocked, or the clamp left it unchanged
+  grid -> canplace : Test the candidate
+  canplace --> grid : Occupied, or identical to the current span
+  grid -> grid : Change nothing and emit nothing per L2-028
+  grid -> announce : Compose the blocked announcement per L2-029
+  announce --> grid : Tile name with a statement that the command was blocked
+end
+grid -> dom : Write the text into the polite live region
+dom -> at : Announce the outcome
+dom --> actor : Present the tile, still focused
+@enduml

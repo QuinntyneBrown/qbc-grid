@@ -1,0 +1,58 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Reveal the grid during an interaction
+
+interface GridMetrics {
+  +columns: number
+  +columnWidth: number
+  +rowHeight: number
+  +gap: number
+}
+
+interface GridInteraction {
+  +kind: GridInteractionKind
+  +tileId: string
+  +shadow: GridShadow
+}
+
+class GridComponent {
+  +metrics: Signal<GridMetrics>
+  +rowCount: Signal<number>
+  +overlayVisible: Signal<boolean>
+  -settling: Signal<boolean>
+}
+
+class GridPointerSession {
+  +interaction: Signal<GridInteraction | null>
+}
+
+class gridKeyboardCandidate <<function>> {
+  +gridKeyboardCandidate(event: KeyboardEvent, tile: GridTile, columns: number): GridCell | null
+}
+
+class GridOverlayStyles <<stylesheet>> {
+  +--qbc-grid-column-width
+  +--qbc-grid-row-height
+  +--qbc-grid-gap
+  +--qbc-color-grid-line
+  +--qbc-duration-fast
+}
+
+GridComponent --> GridPointerSession : reads the interaction from
+GridComponent ..> gridKeyboardCandidate : raises the settle window for
+GridComponent --> GridMetrics : publishes
+GridPointerSession --> GridInteraction : holds at most one
+GridMetrics ..> GridOverlayStyles : sets the gradient period in
+GridComponent ..> GridOverlayStyles : toggles the hidden state read by
+@enduml

@@ -1,0 +1,55 @@
+@startuml
+title UML sequence behaviour - Show and hide the overlay
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+  participant "grid.css" as styles
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+note over grid : Idle in edit mode, overlayVisible is false per L2-019
+actor -> dom : Press a tile and cross the 3 px threshold
+dom -> grid : pointermove
+grid -> session : track(event)
+session -> grid : Publish the interaction
+grid -> grid : overlayVisible becomes true
+grid -> dom : Clear the hidden state on the overlay element
+styles -> dom : Paint the column and row gradients behind every tile per L2-019
+dom --> actor : Reveal the cell structure
+
+loop for each further pointermove
+  grid -> session : track(event)
+  note over styles, dom : The overlay is untouched; only the tile and the shadow move
+end
+
+alt the interaction commits
+  actor -> dom : Release the pointer on a valid target
+  dom -> grid : pointerup
+  grid -> session : release()
+else the interaction reverts
+  actor -> dom : Press Escape, or the window loses focus
+  dom -> grid : keydown or blur
+  grid -> session : cancel()
+end
+session -> grid : Clear the interaction
+grid -> grid : overlayVisible becomes false
+grid -> dom : Set the hidden state on the overlay element per L2-019
+dom --> actor : Present the dashboard without the overlay
+@enduml

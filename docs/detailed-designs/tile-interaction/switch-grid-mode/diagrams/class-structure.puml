@@ -33,9 +33,9 @@ class GridComponent {
 
 class GridPointerSession {
   +interaction: Signal<GridInteraction | null>
-  +start(kind: GridInteractionKind, tile: GridTile, event: PointerEvent): void
+  +start(kind: GridInteractionKind, tile: GridTile, event: PointerEvent, metrics: GridMetrics): void
   +cancel(): void
-  +release(): void
+  +release(): GridCell | null
 }
 
 interface GridInteraction {

@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Resize a tile
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Renders one corner handle per unlocked tile and commits the resized span")
+  Component(handle, "resize handle", "Template element and stylesheet rule", "Bottom-right target of at least 16 px by 16 px")
+  Component(session, "GridPointerSession", "TypeScript class", "Runs the resize gesture with kind of resize")
+  Component(spanat, "spanAt", "TypeScript function", "Converts the dragged corner to a whole-cell span for L2-016")
+  Component(clamp, "clampTile", "TypeScript function", "Applies minCols, minRows, maxCols, maxRows, and the column bound for L2-017")
+  Component(canplace, "canPlace", "TypeScript function", "Decides whether the span is free for L2-018")
+  Component(scheduler, "GridFrameScheduler", "TypeScript class", "Collapses pointer events to one style write per frame")
+}
+
+System_Ext(browser, "Desktop browser", "Pointer capture, pointer events, and layout")
+
+Rel(browser, handle, "Delivers pointerdown to")
+Rel(handle, grid, "Starts a resize, never a move, in")
+Rel(grid, session, "Runs the gesture through")
+Rel(session, spanat, "Snaps the dragged corner with")
+Rel(session, clamp, "Applies the size limits with")
+Rel(session, canplace, "Validates the span with")
+Rel(session, scheduler, "Schedules style writes through")
+Rel(scheduler, browser, "Writes the tile size and the shadow span to", "DOM")
+@enduml

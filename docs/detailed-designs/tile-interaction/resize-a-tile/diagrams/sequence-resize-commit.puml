@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour - Resize a tile to a free span
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+  participant "spanAt" as spanat
+  participant "clampTile" as clamp
+  participant "canPlace" as canplace
+  participant "GridFrameScheduler" as scheduler
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> dom : Press the bottom-right handle of an unlocked tile
+dom -> grid : pointerdown on the handle
+grid -> session : start(resize, tile, event, metrics)
+session -> session : Record the origin cell and hold x and y fixed per L2-015
+session -> dom : setPointerCapture and show the overlay per L2-019
+loop for each pointermove
+  grid -> session : track(event)
+  session -> spanat : Snap the dragged corner to a whole-cell span per L2-016
+  spanat --> session : Candidate span
+  session -> clamp : Apply minCols, minRows, maxCols, maxRows, and the column bound per L2-017
+  clamp --> session : Clamped span
+  session -> canplace : Test the span against every other tile
+  canplace --> session : Free
+  session -> scheduler : Schedule one write for this frame
+  scheduler -> dom : Size the tile to the pointer and place the valid shadow
+end
+actor -> dom : Release the pointer
+dom -> grid : pointerup
+grid -> session : release()
+session -> dom : releasePointerCapture and hide the overlay and shadow
+session --> grid : Clamped span
+grid -> grid : Adopt the span, leaving x and y unchanged
+grid -> dashboard : Emit layoutChange exactly once per L2-023
+dashboard --> actor : Present the resized tile
+@enduml

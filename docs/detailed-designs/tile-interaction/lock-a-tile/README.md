@@ -37,7 +37,7 @@ than caching anything.
 - **`GridComponent.onPointerDown`** — returns without starting a session when
   `isInteractive` is false. `GridPointerSession` is never started for a locked tile, so
   there is no gesture to cancel and no state to unwind.
-- **`GridComponent.onKeyDown`** — dispatches to `GridKeyboardCommands` only when
+- **`GridComponent.onKeyDown`** — dispatches to `gridKeyboardCandidate` only when
   `isInteractive` is true. A locked tile is not focusable in the first place, so this is a
   second barrier rather than the only one.
 - **`GridComponent.tabIndexOf`** — returns `-1` for a locked tile, keeping it out of the

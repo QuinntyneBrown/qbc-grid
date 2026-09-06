@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Reveal the grid during an interaction
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Derives overlayVisible from the interaction in flight")
+  Component(session, "GridPointerSession", "TypeScript class", "Publishes the interaction that gates the overlay")
+  Component(keys, "gridKeyboardCandidate", "TypeScript function", "Supplies the command whose settle window raises the same gate")
+  Component(overlay, "overlay element", "Template element", "One element painted behind every tile")
+  Component(styles, "grid.css", "Component stylesheet", "Draws the cell structure with two repeating gradients from the grid custom properties")
+  Component(metrics, "GridMetrics", "TypeScript type", "columnWidth, rowHeight, and gap, published as custom properties")
+}
+
+System_Ext(browser, "Desktop browser", "Compositor")
+
+Rel(session, grid, "Publishes the interaction to")
+Rel(keys, grid, "Raises the settle window in")
+Rel(grid, overlay, "Toggles the hidden state of")
+Rel(grid, metrics, "Publishes as custom properties read by")
+Rel(metrics, styles, "Sets the gradient period in")
+Rel(styles, overlay, "Paints")
+Rel(overlay, browser, "Composites as one layer in", "DOM")
+@enduml

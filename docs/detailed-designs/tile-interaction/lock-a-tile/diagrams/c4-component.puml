@@ -7,7 +7,7 @@ Container_Boundary(components, "components library") {
   Component(grid, "GridComponent", "Angular standalone component", "Tests locked before starting any gesture and before setting a tab index")
   Component(tile, "GridTile", "TypeScript type", "Carries the optional locked flag")
   Component(session, "GridPointerSession", "TypeScript class", "Never receives a start call for a locked tile")
-  Component(keys, "GridKeyboardCommands", "TypeScript function", "Ignores a key event whose tile is locked")
+  Component(keys, "gridKeyboardCandidate", "TypeScript function", "Never receives a key event whose tile is locked")
   Component(canplace, "canPlace", "TypeScript function", "Counts a locked tile as occupied like any other")
   Component(styles, "grid.css", "Component stylesheet", "Suppresses the handle and cursor on a locked tile")
 }

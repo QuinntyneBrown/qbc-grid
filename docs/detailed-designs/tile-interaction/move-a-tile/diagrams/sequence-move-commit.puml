@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour - Move a tile to a free cell
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+  participant "GridFrameScheduler" as scheduler
+  participant "cellAt" as cellat
+  participant "canPlace" as canplace
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> dom : Press the pointer on an unlocked tile
+dom -> grid : pointerdown
+grid -> session : start(move, tile, event, metrics)
+session -> session : Record the origin cell, the grab offset, and the pointer id
+session -> dom : Measure the grid rectangle once per L2-031
+actor -> dom : Move the pointer 4 px
+dom -> grid : pointermove
+grid -> session : track(event)
+session -> session : Travel exceeds the 3 px threshold per L2-009
+session -> dom : setPointerCapture and show the overlay per L2-019
+loop for each further pointermove
+  grid -> session : track(event)
+  session -> cellat : Snap the lifted rectangle, clamped to the grid per L2-011
+  cellat --> session : Target cell
+  session -> canplace : Test the target against every other tile
+  canplace --> session : Free
+  session -> scheduler : Schedule one write for this frame per L2-031
+  scheduler -> dom : Translate the lifted tile and place the valid shadow
+end
+actor -> dom : Release the pointer over the free cell
+dom -> grid : pointerup
+grid -> session : release()
+session -> dom : releasePointerCapture and hide the overlay and shadow
+session --> grid : Target cell
+grid -> grid : Adopt the target cell per L2-013
+grid -> dashboard : Emit layoutChange exactly once
+dashboard --> actor : Present the moved tile
+@enduml

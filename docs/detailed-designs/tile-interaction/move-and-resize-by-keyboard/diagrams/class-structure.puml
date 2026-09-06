@@ -1,0 +1,66 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Move and resize by keyboard
+
+interface GridCell {
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+interface GridTile {
+  +id: string
+  +label?: string
+  +locked?: boolean
+  +minCols?: number
+  +maxCols?: number
+}
+
+class GridComponent {
+  +announcement: Signal<string>
+  -settling: Signal<boolean>
+  -onKeyDown(tile: GridTile, event: KeyboardEvent): void
+  -commit(next: readonly GridTile[]): void
+}
+
+class gridKeyboardCandidate <<function>> {
+  +gridKeyboardCandidate(event: KeyboardEvent, tile: GridTile, columns: number): GridCell | null
+}
+
+class accessibleNameOf <<function>> {
+  +accessibleNameOf(tile: GridTile): string
+}
+
+class announcementFor <<function>> {
+  +announcementFor(name: string, cell: GridCell, accepted: boolean): string
+}
+
+class clampTile <<function>> {
+  +clampTile(tile: GridTile, columns: number): GridTile
+}
+
+class canPlace <<function>> {
+  +canPlace(others: readonly GridTile[], candidate: GridCell, columns: number): boolean
+}
+
+GridTile --|> GridCell
+GridComponent ..> gridKeyboardCandidate : maps the key event with
+GridComponent ..> canPlace : validates with
+GridComponent ..> accessibleNameOf : names the tile with
+GridComponent ..> announcementFor : composes the announcement with
+gridKeyboardCandidate ..> clampTile : clamps a resize candidate with
+gridKeyboardCandidate ..> GridCell : returns
+announcementFor ..> GridCell : reads
+@enduml

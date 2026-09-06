@@ -1,0 +1,85 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Move a tile
+
+interface GridCell {
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+interface GridShadow {
+  +cell: GridCell
+  +valid: boolean
+}
+
+enum GridInteractionKind {
+  move
+  resize
+}
+
+interface GridInteraction {
+  +kind: GridInteractionKind
+  +tileId: string
+  +origin: GridCell
+  +grabOffsetX: number
+  +grabOffsetY: number
+  +pointerId: number
+  +shadow: GridShadow
+}
+
+class GridPointerSession {
+  -threshold: number = 3
+  +interaction: Signal<GridInteraction | null>
+  +start(kind: GridInteractionKind, tile: GridTile, event: PointerEvent, metrics: GridMetrics): void
+  +track(event: PointerEvent): void
+  +release(): GridCell | null
+  +cancel(): void
+}
+
+class GridFrameScheduler {
+  -handle: number | null
+  +schedule(write: () => void): void
+  +flush(): void
+  +stop(): void
+}
+
+class GridComponent {
+  +tiles: Signal<readonly GridTile[]>
+  +shadow: Signal<GridShadow | null>
+  -onPointerDown(tile: GridTile, event: PointerEvent): void
+  -onPointerMove(event: PointerEvent): void
+  -onPointerUp(event: PointerEvent): void
+  -commit(next: readonly GridTile[]): void
+}
+
+class cellAt <<function>> {
+  +cellAt(left: number, top: number, span: GridCell, metrics: GridMetrics): GridCell
+}
+
+class canPlace <<function>> {
+  +canPlace(others: readonly GridTile[], candidate: GridCell, columns: number): boolean
+}
+
+GridComponent --> GridPointerSession : owns
+GridPointerSession --> GridInteraction : holds at most one
+GridPointerSession --> GridFrameScheduler : writes through
+GridPointerSession ..> cellAt : snaps with
+GridPointerSession ..> canPlace : validates with
+GridInteraction --> GridShadow : publishes
+GridInteraction --> GridInteractionKind : has
+GridShadow --> GridCell : targets
+cellAt ..> GridCell : returns
+@enduml

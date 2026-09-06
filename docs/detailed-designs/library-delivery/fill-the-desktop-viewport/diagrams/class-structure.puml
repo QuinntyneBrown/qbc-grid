@@ -1,0 +1,58 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Fill the desktop viewport
+
+interface GridMetrics {
+  +columns: number
+  +columnWidth: number
+  +rowHeight: number
+  +gap: number
+}
+
+class GridWidthObserver {
+  -observer: ResizeObserver
+  +width: Signal<number>
+  +observe(host: HTMLElement): void
+  +disconnect(): void
+}
+
+class GridComponent {
+  +columns: InputSignal<number>
+  +metrics: Signal<GridMetrics>
+  +tiles: Signal<readonly GridTile[]>
+  -host: ElementRef<HTMLElement>
+}
+
+class GridHostStyles <<stylesheet>> {
+  +--qbc-grid-columns
+  +--qbc-grid-column-width
+  +--qbc-grid-row-height
+  +--qbc-grid-gap
+}
+
+interface GridTile {
+  +id: string
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+GridComponent --> GridWidthObserver : owns
+GridComponent --> GridMetrics : publishes
+GridComponent --> "*" GridTile : renders
+GridWidthObserver ..> GridComponent : reports the content width to
+GridMetrics ..> GridHostStyles : sets
+GridHostStyles ..> GridTile : positions each
+@enduml

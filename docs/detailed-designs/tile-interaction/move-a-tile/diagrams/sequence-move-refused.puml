@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour - Move refused and abandoned
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+  participant "canPlace" as canplace
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> dom : Drag a tile over cells another tile occupies
+dom -> grid : pointermove
+grid -> session : track(event)
+session -> canplace : Test the target cell
+canplace --> session : Occupied
+session -> dom : Render the shadow in the invalid state per L2-012
+
+alt the pointer is released on the occupied target
+  actor -> dom : Release the pointer
+  dom -> grid : pointerup
+  grid -> session : release()
+  session --> grid : No target, because the shadow was invalid
+  grid -> dom : Animate the tile back to its origin cell per L2-012
+  grid -> grid : Emit nothing
+else the operator presses Escape
+  actor -> dom : Press Escape
+  dom -> grid : keydown
+  grid -> session : cancel() per L2-014
+  session -> dom : releasePointerCapture, hide the overlay and shadow
+  grid -> dom : Restore the tile to its origin cell
+  grid -> grid : Emit nothing
+else the browser cancels the gesture
+  dom -> grid : pointercancel or window blur
+  grid -> session : cancel() per L2-014
+  session -> dom : releasePointerCapture, hide the overlay and shadow
+  grid -> grid : Emit nothing
+end
+
+actor -> dom : Press the same tile again
+dom -> grid : pointerdown
+grid -> session : start(move, tile, event, metrics)
+session --> actor : Begin a fresh drag per L2-014
+@enduml

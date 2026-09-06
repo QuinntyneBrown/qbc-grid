@@ -1,0 +1,70 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Resize a tile
+
+interface GridCell {
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+}
+
+interface GridTile {
+  +id: string
+  +minCols?: number
+  +minRows?: number
+  +maxCols?: number
+  +maxRows?: number
+  +locked?: boolean
+}
+
+interface GridShadow {
+  +cell: GridCell
+  +valid: boolean
+}
+
+class GridPointerSession {
+  +start(kind: GridInteractionKind, tile: GridTile, event: PointerEvent, metrics: GridMetrics): void
+  +track(event: PointerEvent): void
+  +release(): GridCell | null
+  +cancel(): void
+}
+
+class GridComponent {
+  +shadow: Signal<GridShadow | null>
+  -onHandlePointerDown(tile: GridTile, event: PointerEvent): void
+  -commit(next: readonly GridTile[]): void
+}
+
+class spanAt <<function>> {
+  +spanAt(right: number, bottom: number, origin: GridCell, metrics: GridMetrics): GridCell
+}
+
+class clampTile <<function>> {
+  +clampTile(tile: GridTile, columns: number): GridTile
+}
+
+class canPlace <<function>> {
+  +canPlace(others: readonly GridTile[], candidate: GridCell, columns: number): boolean
+}
+
+GridTile --|> GridCell
+GridComponent --> GridPointerSession : owns
+GridComponent --> GridShadow : renders
+GridPointerSession ..> spanAt : snaps the corner with
+GridPointerSession ..> clampTile : applies size limits with
+GridPointerSession ..> canPlace : validates with
+GridShadow --> GridCell : targets
+spanAt ..> GridCell : returns
+@enduml

@@ -1,0 +1,58 @@
+@startuml
+title UML sequence behaviour - Resize clamped and refused
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+  participant "clampTile" as clamp
+  participant "canPlace" as canplace
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> dom : Drag the handle beyond a declared limit
+dom -> grid : pointermove
+grid -> session : track(event)
+session -> clamp : Apply the tile size limits per L2-017
+clamp --> session : Span held at minCols, minRows, maxCols, or the column bound
+session -> dom : Hold the shadow at the clamped span
+
+actor -> dom : Drag the handle across a neighbouring tile
+dom -> grid : pointermove
+grid -> session : track(event)
+session -> canplace : Test the span against every other tile
+canplace --> session : Occupied
+session -> dom : Render the shadow in the invalid state per L2-018
+
+alt the pointer is released on the occupied span
+  actor -> dom : Release the pointer
+  dom -> grid : pointerup
+  grid -> session : release()
+  session --> grid : No span, because the shadow was invalid
+  grid -> dom : Restore the original span per L2-018
+  grid -> grid : Emit nothing
+else the operator presses Escape
+  actor -> dom : Press Escape
+  dom -> grid : keydown
+  grid -> session : cancel() per L2-018
+  session -> dom : releasePointerCapture and hide the overlay and shadow
+  grid -> dom : Restore the original span
+  grid -> grid : Emit nothing
+end
+grid --> actor : Present the unchanged tile
+@enduml

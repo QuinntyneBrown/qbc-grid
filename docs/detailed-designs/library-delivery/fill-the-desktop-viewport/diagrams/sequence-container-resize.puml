@@ -1,0 +1,48 @@
+@startuml
+title UML sequence behaviour - Respond to a container width change
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridWidthObserver" as observer
+  participant "GridComponent" as grid
+  participant "grid.css" as styles
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "ResizeObserver" as ro
+  participant "DOM and compositor" as dom
+end box
+
+actor -> dom : Widen the window from 1600 px to 2560 px
+dom -> ro : Content box of the grid host changed
+ro -> observer : Deliver the new content width
+observer -> grid : Publish the width
+grid -> grid : Recompute columnWidth, holding columns fixed per L2-030
+grid -> dom : Write --qbc-grid-column-width on the host
+styles -> dom : Recompute every tile rectangle with calc
+note over grid, dashboard : No tile geometry changed, so no layout is emitted per L2-030
+dom --> actor : Present the same arrangement filling the wider container
+
+actor -> dom : Narrow the window below 1024 px
+dom -> ro : Content box changed
+ro -> observer : Deliver the new content width
+observer -> grid : Publish the width
+grid -> grid : Recompute columnWidth, still holding columns fixed
+grid -> dom : Write --qbc-grid-column-width on the host
+dom --> actor : Present a denser grid with no reflow and no column collapse per L2-030
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Move a tile
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Routes pointer events and commits the shadow geometry on release")
+  Component(session, "GridPointerSession", "TypeScript class", "Owns one gesture: threshold, capture, offset, and teardown")
+  Component(scheduler, "GridFrameScheduler", "TypeScript class", "Collapses pointer events to one style write per animation frame")
+  Component(cellat, "cellAt", "TypeScript function", "Converts the lifted rectangle to the nearest clamped cell for L2-011")
+  Component(canplace, "canPlace", "TypeScript function", "Decides whether the target cell is free for L2-012")
+  Component(shadow, "GridShadow", "TypeScript type", "The target cell and whether it is valid")
+  Component(interaction, "GridInteraction", "TypeScript type", "The gesture in flight, held beside the committed tiles")
+}
+
+System_Ext(browser, "Desktop browser", "Pointer capture, pointer events, and the compositor")
+
+Rel(browser, grid, "Delivers pointerdown, pointermove, pointerup, pointercancel, keydown, and blur to")
+Rel(grid, session, "Starts, updates, and ends the gesture through")
+Rel(session, interaction, "Holds")
+Rel(session, scheduler, "Schedules style writes through")
+Rel(session, cellat, "Snaps the lifted rectangle with")
+Rel(session, canplace, "Validates the target with")
+Rel(session, shadow, "Publishes")
+Rel(scheduler, browser, "Writes the transform and the shadow position to", "DOM")
+Rel(grid, browser, "Requests and releases pointer capture in", "DOM")
+@enduml

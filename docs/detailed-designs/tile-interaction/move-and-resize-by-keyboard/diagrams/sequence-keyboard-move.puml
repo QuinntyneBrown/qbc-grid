@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour - Move a focused tile with an arrow key
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "gridKeyboardCandidate" as keys
+  participant "canPlace" as canplace
+  participant "announcementFor" as announce
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+  participant "Assistive technology" as at
+end box
+
+actor -> dom : Tab to a tile in edit mode
+dom -> grid : focus
+actor -> dom : Press ArrowRight
+dom -> grid : keydown
+grid -> grid : isInteractive(tile) is true
+grid -> keys : Map the key to a candidate cell per L2-027
+keys --> grid : Candidate one column to the right
+grid -> canplace : Test the candidate against every other tile
+canplace --> grid : Free
+grid -> grid : Open the settle window, showing the overlay per L2-019
+grid -> grid : Adopt the candidate and keep focus on the tile per L2-027
+grid -> dashboard : Emit layoutChange exactly once
+grid -> announce : Compose the accepted announcement per L2-029
+announce --> grid : Tile name with its one-based column and row
+grid -> dom : Write the text into the polite live region
+dom -> at : Announce the new position
+grid -> grid : Close the settle window, hiding the overlay
+dom --> actor : Present the moved tile, still focused
+@enduml

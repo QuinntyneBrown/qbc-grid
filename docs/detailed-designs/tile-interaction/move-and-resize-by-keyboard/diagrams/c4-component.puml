@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Move and resize by keyboard
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Routes key events from the focused tile and commits an accepted candidate")
+  Component(keys, "gridKeyboardCandidate", "TypeScript function", "Maps a key event to a candidate cell for L2-027 and L2-028")
+  Component(clamp, "clampTile", "TypeScript function", "Applies the tile size limits to a resize candidate")
+  Component(canplace, "canPlace", "TypeScript function", "Decides whether the candidate is free")
+  Component(announce, "announcementFor", "TypeScript function", "Composes the committed or refused announcement for L2-029")
+  Component(live, "live region", "Template element", "Polite aria-live region carrying the announcement")
+  Component(name, "accessibleNameOf", "TypeScript function", "Falls back from label to id for L2-029")
+}
+
+System_Ext(browser, "Desktop browser", "Focus, key events, and the accessibility tree")
+System_Ext(at, "Assistive technology", "Announces the live region")
+
+Rel(browser, grid, "Delivers keydown from the focused tile to")
+Rel(grid, keys, "Maps the key event with")
+Rel(keys, clamp, "Clamps a resize candidate with")
+Rel(grid, canplace, "Validates the candidate with")
+Rel(grid, name, "Names the tile with")
+Rel(grid, announce, "Composes the announcement with")
+Rel(announce, live, "Writes text into")
+Rel(live, browser, "Updates the accessibility tree in", "DOM")
+Rel(browser, at, "Announces the change to")
+@enduml
