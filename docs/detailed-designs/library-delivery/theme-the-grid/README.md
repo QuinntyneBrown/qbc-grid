@@ -143,6 +143,18 @@ design system and forgotten here would go unchecked — and the criterion that c
 hard-coded literal is exactly the one that would quietly stop covering it. Generating the
 sheet means the check grows with the catalogue on its own.
 
+The demonstration application's build owns that generation, reading the installed token
+package and emitting one override per token it finds. Putting it there rather than in the
+design system keeps test scaffolding out of a package consumers install, and it means the
+sheet covers whichever version of the tokens the application actually resolved rather than
+whichever the design system last published.
+
+The generated value differs from the default by construction. A generator that echoed the
+default would produce a sheet under which a hard-coded literal and a correctly read token
+paint the same colour, and `L2-034` could no longer tell them apart — the criterion would
+pass on a grid that had stopped reading tokens entirely. Deriving each override from its
+default rather than copying it is what keeps the two distinguishable.
+
 The grid's own layout custom properties — `--qbc-grid-column-width`, `--qbc-tile-x`, and
 their siblings — are computed values the component writes at run time, not design tokens. A
 consumer reads them but does not set them.
