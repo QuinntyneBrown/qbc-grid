@@ -353,6 +353,26 @@ export class GridComponent {
       const repair = this.repair();
       if (repair.repaired) untracked(() => this.layoutChange.emit(this.snapshot(repair.tiles)));
     });
+
+    // A gesture holds a proposed cell and a measurement of the grid it was proposed
+    // against. A host replacing the layout, changing the configuration, leaving edit mode,
+    // or locking the tile under the pointer leaves that proposal describing a grid that no
+    // longer exists, and committing it afterwards would overwrite the state the host has
+    // just supplied with a drop computed against the state it replaced. The operator loses
+    // a drag they can repeat; the alternative loses an update they cannot.
+    //
+    // A change of container width is deliberately not among these. Nothing the host
+    // believes has changed there — the same layout in the same columns over different
+    // pixels — so `L2-030` has the gesture carry on against a rebased measurement.
+    effect(() => {
+      this.layout();
+      this.columns();
+      this.rowHeight();
+      this.gap();
+      this.editable();
+      // Reaching here at all means one of those changed, so an active gesture is stale.
+      untracked(() => this.session.cancel());
+    });
   }
 
   /**

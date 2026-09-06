@@ -288,6 +288,29 @@ export class DashboardPageObject {
     });
   }
 
+  /**
+   * Activates a control from the keyboard, which is the only route while a gesture holds
+   * pointer capture: the pointer is routed to the tile until the gesture ends, so no
+   * control on the page can be reached with it.
+   */
+  async activateControlFromKeyboard(selector: string): Promise<void> {
+    await this.page.locator(selector).evaluate((element: HTMLElement) => {
+      element.focus();
+      element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      element.click();
+    });
+  }
+
+  /** Whether the tile still holds the pointer, which every terminal path has to release. */
+  async tileHoldsPointerCapture(id: string): Promise<boolean> {
+    return this.tile(id).evaluate((element) => {
+      for (let pointerId = 0; pointerId < 8; pointerId += 1) {
+        if (element.hasPointerCapture(pointerId)) return true;
+      }
+      return false;
+    });
+  }
+
   /** The cell geometry the shadow currently previews. */
   async shadowGeometry(): Promise<TileGeometryReading> {
     return this.shadow.evaluate((element) => {
