@@ -81,11 +81,46 @@ Each one exists because a criterion asks something the rendered pixels cannot an
 `L2-008` asks whether a tile is locked; `L2-029` asks what was announced.
 
 Geometry needs no attribute of its own. A page object reads `--qbc-tile-x`,
-`--qbc-tile-y`, `--qbc-tile-cols`, and `--qbc-tile-rows` from a tile's computed style and
-receives the cell coordinates the criteria are already written in. The alternative — 
-measuring pixel offsets and dividing back down into cells — would reimplement the grid's
-own arithmetic inside the tests that exist to check it, and would agree with the grid even
-when both were wrong.
+`--qbc-tile-y`, `--qbc-tile-cols`, and `--qbc-tile-rows` from a tile's computed style, and
+`--qbc-grid-columns`, `--qbc-grid-column-width`, `--qbc-grid-row-height`, and
+`--qbc-grid-gap` from the host's. Those return the cell coordinates and the column
+arithmetic the criteria are already written in. The alternative — measuring pixel offsets
+and dividing back down into cells — would reimplement the grid's own arithmetic inside the
+tests that exist to check it, and would agree with the grid even when both were wrong.
+
+### Observing what the DOM does not show
+
+Twenty-seven of the acceptance criteria in `docs/specs/L2.md` are about emission: seventeen
+assert that nothing was emitted, and seven that a layout was emitted exactly once. An
+Angular output leaves no trace in the DOM, so none of the attributes above can answer any
+of them, and a quarter of the specification would otherwise be unassertable.
+
+The demonstration application records what the grid emits and renders the record, because
+it is already test scaffolding by declaration and the published library is not. Two more
+attributes therefore exist, and they belong to the demonstration page rather than to the
+grid's published surface:
+
+| Attribute | Sits on | Carries |
+|-----------|---------|---------|
+| `data-qbc-emissions` | the demonstration page | how many layouts the grid has emitted since load |
+| `data-qbc-last-layout` | the demonstration page | the most recent emitted layout, as JSON |
+
+A count answers the negatives and the exactly-once criteria; the payload answers the rest,
+such as `L2-013`, which asks that an emitted layout contain every tile with only the dragged
+one's `x` and `y` changed. The saved layout cannot stand in for either, because
+`DashboardComponent` coalesces its writes — after a burst of commits the number of saves and
+the number of emissions deliberately differ.
+
+`L2-023` asks that a host mutating a record it received leave the grid unaffected, which
+needs a host willing to try. The demonstration page carries a control that mutates the last
+emitted layout in place, so the specification can perform the abuse the requirement
+describes rather than assume nobody will.
+
+Four criteria resist attributes altogether. `L2-031` asks how many style writes land in an
+animation frame, whether any layout-forcing measurement occurred, and whether any tile other
+than the dragged one was touched. Those are answered by instrumentation the specification
+installs — a `MutationObserver` over the tile elements for the write counts, and a
+performance trace for the frame durations — not by anything the grid or the page publishes.
 
 ## Deliberate exclusions
 

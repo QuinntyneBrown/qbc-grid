@@ -51,6 +51,15 @@ service contract.
   layout of its own. It is the demonstration host the acceptance tests drive, and it is
   where the responsibilities the repository assigns to an application project — routing and
   page-level composition — are met.
+
+  It also carries the record of what the grid has emitted, described in
+  [the testing seam](../../README.md#observing-what-the-dom-does-not-show): a count and the
+  last payload, rendered into the page. Twenty-seven acceptance criteria turn on emission,
+  and an Angular output leaves nothing in the DOM for a page object to read. The record
+  lives here rather than in the library because a published grid has no business carrying
+  instrumentation for its own tests, and because the saved layout cannot substitute — the
+  coalescing described below means the number of saves and the number of emissions differ
+  by design.
 - **`DashboardComponent`** — in the `domain` library. It injects `DASHBOARD_SERVICE`,
   binds the loaded layout into `qbc-grid`, and calls `save` when the layout settles. It
   holds the layout in a signal rather than an observable, since the layout is state rather
