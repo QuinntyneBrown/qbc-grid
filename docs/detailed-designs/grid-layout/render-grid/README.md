@@ -56,10 +56,16 @@ type, as the repository requires.
   nudge, and a repair all share one vocabulary.
 - **`GridMetrics`** — the derived render context: `columns`, `columnWidth`, `rowHeight`,
   and `gap`. It is recomputed when the container width changes and at no other time.
-- **`coerceGridOptions`** — pure function applying `L2-004`. It floors `columns` to at
-  least 1, raises `rowHeight` to at least 1, raises `gap` to at least 0, and substitutes
-  the documented default for any non-finite value: 12 columns, a row height of 60, and a
-  gap of 8.
+- **`coerceGridOptions`** — pure function applying `L2-004` and the column arithmetic of
+  `L2-001`. It floors `columns` to at least 1, raises `rowHeight` to at least 1, raises
+  `gap` to at least 0, and substitutes the documented default for any non-finite value: 12
+  columns, a row height of 60, and a gap of 8. It takes the measured container width as its
+  fourth argument and returns the whole `GridMetrics`, column width included.
+
+  The width belongs in the same function because two of the four values it returns depend
+  on it. Column width plainly does. The gap does too, once the effective gap is the
+  configured one reduced to keep the columns positive, and a function handed three
+  arguments could return neither.
 
   Those three coercions are each sound and together leave one case open, because column
   width depends on the container as well as the configuration. Twelve columns and a gap of

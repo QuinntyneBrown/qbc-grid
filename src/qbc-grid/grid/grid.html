@@ -1,9 +1,12 @@
-@for (tile of tiles(); track tile.id) {
+@for (tile of orderedTiles(); track tile.id) {
   <div
     class="qbc-grid__tile"
-    data-qbc-tile
     [attr.data-qbc-tile]="tile.id"
     [attr.data-locked]="tile.locked ? '' : null"
+    [style.--qbc-tile-x]="tile.x"
+    [style.--qbc-tile-y]="tile.y"
+    [style.--qbc-tile-cols]="tile.cols"
+    [style.--qbc-tile-rows]="tile.rows"
   >
     <ng-container
       [ngTemplateOutlet]="tileTemplate()?.templateRef ?? null"

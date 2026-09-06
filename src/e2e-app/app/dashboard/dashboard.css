@@ -3,6 +3,15 @@
   inline-size: 100%;
 }
 
+/* The grid divides the width it is given, so the page gives it the viewport with nothing beside it. */
+.record {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 .widget {
-  padding: 8px;
+  padding: var(--qbc-space-2, 8px);
 }

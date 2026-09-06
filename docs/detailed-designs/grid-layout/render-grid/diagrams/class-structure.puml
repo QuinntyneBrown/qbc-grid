@@ -72,7 +72,7 @@ interface GridTileContext {
 }
 
 class coerceGridOptions <<function>> {
-  +coerceGridOptions(columns: number, rowHeight: number, gap: number): GridMetrics
+  +coerceGridOptions(columns: number, rowHeight: number, gap: number, width: number): GridMetrics
 }
 
 class rectOf <<function>> {

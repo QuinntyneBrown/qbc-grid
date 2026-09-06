@@ -1,3 +1,16 @@
-<qbc-grid [layout]="layout()" [mode]="mode()">
+<div
+  class="record"
+  [attr.data-qbc-emissions]="emissions()"
+  [attr.data-qbc-last-layout]="lastLayout()"
+></div>
+
+<qbc-grid
+  [layout]="layout()"
+  [columns]="columns"
+  [rowHeight]="rowHeight"
+  [gap]="gap"
+  [mode]="mode()"
+  (layoutChange)="onLayoutChange($event)"
+>
   <div *qbcGridTile="let tile" class="widget">{{ tile.label ?? tile.id }}</div>
 </qbc-grid>

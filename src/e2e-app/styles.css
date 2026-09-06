@@ -1,7 +1,12 @@
+@import '@qbc/design-system/qbc-tokens.css';
+
 :root {
   color-scheme: dark;
 }
 
+/* The grid is given the full width of the viewport, with no padding, margin, or chrome
+   beside it, so a viewport set to the width a criterion names gives the grid a container
+   of exactly that width and the criterion's arithmetic is the grid's arithmetic. */
 body {
   margin: 0;
   font: 14px/1.5 system-ui, sans-serif;

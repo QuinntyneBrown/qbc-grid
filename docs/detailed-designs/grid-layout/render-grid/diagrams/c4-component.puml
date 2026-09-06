@@ -7,7 +7,7 @@ Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Owns the tile signal and the metrics signal, and writes the grid custom properties")
   Component(tpl, "GridTileTemplateDirective", "Angular directive", "Holds the per-tile TemplateRef the host supplies")
   Component(metrics, "GridMetrics", "TypeScript type", "columns, columnWidth, rowHeight, and gap for the current render")
-  Component(coerce, "coerceGridOptions", "TypeScript function", "Applies L2-004 coercion to columns, rowHeight, and gap")
+  Component(coerce, "coerceGridOptions", "TypeScript function", "Applies L2-004 coercion to columns, rowHeight, and gap, and derives the column width for L2-001")
   Component(normalize, "normalizeLayout", "TypeScript function", "Applies L2-025 repair before any tile is rendered")
   Component(rect, "rectOf", "TypeScript function", "Converts a tile geometry to a pixel rectangle for L2-002")
 }
