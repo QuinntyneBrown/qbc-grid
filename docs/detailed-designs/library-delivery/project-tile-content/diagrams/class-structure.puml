@@ -1,0 +1,55 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Project tile content
+
+interface GridTile {
+  +id: string
+  +x: number
+  +y: number
+  +cols: number
+  +rows: number
+  +label?: string
+}
+
+interface GridTileContext {
+  +$implicit: GridTile
+}
+
+class GridTileTemplateDirective {
+  +templateRef: TemplateRef<GridTileContext>
+}
+
+class GridComponent {
+  +tiles: Signal<readonly GridTile[]>
+  +tileTemplate: Signal<GridTileTemplateDirective | undefined>
+  +trackById(tile: GridTile): string
+}
+
+class DashboardComponent {
+  +layout: Signal<readonly GridTile[]>
+}
+
+class TelemetryWidget {
+  +tile: GridTile
+  -scrollPosition: number
+}
+
+GridComponent --> GridTileTemplateDirective : reads the template from
+GridComponent ..> GridTileContext : builds one per tile
+GridTileTemplateDirective --> GridTileContext : instantiates with
+GridTileContext --> GridTile : carries
+DashboardComponent ..> GridTileTemplateDirective : declares
+DashboardComponent --> TelemetryWidget : renders inside the template
+TelemetryWidget --> GridTile : reads
+@enduml

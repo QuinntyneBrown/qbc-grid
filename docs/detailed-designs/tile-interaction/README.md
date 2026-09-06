@@ -14,8 +14,14 @@ is exactly the result after release.
 
 A second rule shapes the implementation: an interaction is a value, not a mutation in
 flight. `GridPointerSession` holds a `GridInteraction` describing the gesture, and the
-committed tile list changes once, at release. Reverting is therefore discarding a
-value, not undoing a mutation.
+committed tile list changes at most once, at release — and not at all when the gesture
+ends where it began. Reverting is therefore discarding a value, not undoing a mutation.
+
+Two of the six features below carry a single requirement each, and both stay separate on
+purpose. Locking cuts across the pointer move, the pointer resize, the keyboard commands,
+and the tab order; the overlay is raised by all three interaction paths. Folding either into
+one gesture would file a rule under one of the four places it applies and hide it from the
+other three.
 
 ## Features
 

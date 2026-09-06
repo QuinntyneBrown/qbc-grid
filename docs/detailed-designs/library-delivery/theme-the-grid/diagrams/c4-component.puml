@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Distribute and theme the grid
+
+Container_Boundary(ds, "design-system") {
+  Component(tokens, "qbc-tokens.css", "CSS custom properties", "Authoritative colour, space, radius, elevation, border, and motion tokens")
+  Component(site, "Token gallery", "Static site", "Renders every token and the grid states that use it")
+}
+
+Container_Boundary(components, "components library") {
+  Component(entry, "public-api.ts", "Library entry point", "Exports GridComponent, GridTileTemplateDirective, GridTile, GridMode, and GridShadow")
+  Component(grid, "GridComponent", "Angular standalone component", "Injects no service defined outside the library")
+  Component(styles, "grid.css", "Component stylesheet", "Reads every visual value as var(--qbc-<role>)")
+  Component(pkg, "package.json", "Package manifest", "Declares Angular as a peer dependency and depends on no application package")
+}
+
+Container_Ext(consumer, "Consuming application", "Any Angular application", "Installs the package and may redefine tokens")
+
+Rel(tokens, styles, "Supplies every colour, dimension, and duration to")
+Rel(tokens, site, "Is documented by")
+Rel(entry, consumer, "Exports the public surface to")
+Rel(grid, entry, "Is exported through")
+Rel(styles, grid, "Styles")
+Rel(pkg, consumer, "Declares peer requirements to")
+Rel(consumer, tokens, "May redefine")
+@enduml

@@ -34,8 +34,8 @@ The overlay is one element, one derived signal, and a stylesheet rule.
   `GridPointerSession.interaction()` is not `null`, or while the settle window of a
   keyboard command is open. One signal covers the pointer path and the keyboard path, so
   the overlay cannot appear for one and not the other.
-- **`GridComponent.settling`** — the short window a keyboard command holds the overlay
-  open, described in
+- **`GridComponent.settling`** — the window a keyboard command holds the overlay open,
+  lasting `--qbc-duration-settle` and described in
   [`move-and-resize-by-keyboard`](../move-and-resize-by-keyboard/). A keyboard move has no
   gesture duration of its own, so without the window the overlay would flash.
 - **`grid.css`** — draws the structure with two `repeating-linear-gradient` layers. The

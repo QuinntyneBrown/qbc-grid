@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour - Project content and preserve it across a move
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+  participant "TelemetryWidget" as widget
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridTileTemplateDirective" as tpl
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+dashboard -> tpl : Declare the qbcGridTile template
+tpl -> grid : Supply the TemplateRef
+loop for each tile, tracked by id
+  grid -> grid : Build a GridTileContext holding the tile
+  grid -> dom : Instantiate the template into a tile outlet
+  dom -> widget : Create the projected component once per L2-032
+  widget --> dom : Rendered content
+end
+note over grid, dom : No host value is interpolated as markup; a hostile label renders as text per L2-032
+
+actor -> widget : Scroll the widget content
+widget -> widget : Hold the scroll position in component state
+actor -> grid : Drag the tile to a new cell and release
+grid -> grid : Commit the new geometry, tracked by the same id
+grid -> dom : Write the tile custom properties on the existing outlet
+opt the commit changes the tile's place in the row-major order
+  grid -> dom : Move the existing element among its siblings, tracked by id
+end
+note over dom, widget : The outlet is moved or repositioned, never re-created, so the widget instance and its scroll position survive per L2-032
+dom --> actor : Present the moved tile with its content unchanged
+@enduml

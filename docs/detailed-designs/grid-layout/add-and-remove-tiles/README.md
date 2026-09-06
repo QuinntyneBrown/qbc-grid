@@ -49,6 +49,12 @@ it in `frontend/projects/components/src/lib/grid/`.
 sets the signal and emits `layoutChange`, so every mutation in the library — add, remove,
 committed interaction, and repair — emits exactly once and in one place.
 
+Both methods are imperative, so a host reaches them through a `viewChild` handle on the
+grid rather than through a binding. That is the cost of the grid, not the host, owning
+placement: `L2-021` puts the choice of a free cell inside the library, and a host that
+appended to its own layout array would have to reimplement it. Adding through the grid and
+persisting what the grid emits keeps one placement rule in one place.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirements. Each L2 requirement

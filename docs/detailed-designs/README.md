@@ -18,7 +18,8 @@ Terms used across every design in this tree, defined once here:
   interaction in progress were released
 - **overlay** — cell structure painted behind the tiles for the duration of an
   interaction
-- **commit** — adoption of a new geometry, followed by emission of the layout
+- **commit** — adoption of a proposed geometry, followed by emission of the layout
+  when the adoption changed something, and by no emission when it did not
 - **revert** — restoration of the geometry a tile held before an interaction,
   with no emission
 

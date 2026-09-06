@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Hold the frame budget
+
+Container_Boundary(components, "components library") {
+  Component(session, "GridPointerSession", "TypeScript class", "Measures the grid rectangle once at gesture start and never again")
+  Component(scheduler, "GridFrameScheduler", "TypeScript class", "Collapses many pointer events into one write per animation frame")
+  Component(cellat, "cellAt", "TypeScript function", "Snaps from cached numbers, reading no element")
+  Component(canplace, "canPlace", "TypeScript function", "Tests cell rectangles, reading no element")
+  Component(styles, "grid.css", "Component stylesheet", "Positions with transform so a move stays on the compositor")
+  Component(grid, "GridComponent", "Angular standalone component", "Leaves every tile but the dragged one untouched during a gesture")
+}
+
+System_Ext(browser, "Desktop browser", "requestAnimationFrame, style, layout, and the compositor")
+
+Rel(browser, session, "Delivers pointermove to")
+Rel(session, cellat, "Snaps with")
+Rel(session, canplace, "Validates with")
+Rel(session, scheduler, "Schedules one write through")
+Rel(scheduler, browser, "Requests a frame from", "requestAnimationFrame")
+Rel(scheduler, styles, "Writes the dragged tile transform and the shadow position into")
+Rel(styles, browser, "Composites without layout in")
+Rel(grid, session, "Owns")
+@enduml

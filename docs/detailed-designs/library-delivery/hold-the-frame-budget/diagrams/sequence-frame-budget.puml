@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour - Collapse pointer events into one write per frame
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridPointerSession" as session
+  participant "cellAt" as cellat
+  participant "canPlace" as canplace
+  participant "GridFrameScheduler" as scheduler
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and layout" as dom
+  participant "Compositor" as gpu
+end box
+
+actor -> session : Press a tile and cross the drag threshold
+session -> dom : Read the grid rectangle once per L2-031
+dom --> session : Left, top, columnWidth, rowHeight, and gap
+session -> session : Cache them for the whole gesture
+
+group One animation frame, 20 pointer events
+  loop for each pointermove
+    actor -> session : pointermove
+    session -> cellat : Snap from the cached numbers, reading no element
+    cellat --> session : Target cell
+    session -> canplace : Test the target against every other tile
+    canplace --> session : Free or occupied
+    session -> scheduler : schedule(write)
+    scheduler -> scheduler : Replace the pending write, requesting no second frame
+  end
+  scheduler -> dom : Apply one write for this frame per L2-031
+  note over dom : Only the dragged tile and the shadow are touched; the other 59 tiles are untouched
+  dom -> gpu : Composite the transform without layout
+  gpu --> actor : Present the frame within 16 ms
+end
+
+actor -> session : Release the pointer
+session -> scheduler : stop()
+scheduler -> dom : Cancel any pending frame
+@enduml

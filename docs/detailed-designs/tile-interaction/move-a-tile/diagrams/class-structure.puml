@@ -47,6 +47,7 @@ class GridPointerSession {
   +track(event: PointerEvent): void
   +release(): GridCell | null
   +cancel(): void
+  +destroy(): void
 }
 
 class GridFrameScheduler {

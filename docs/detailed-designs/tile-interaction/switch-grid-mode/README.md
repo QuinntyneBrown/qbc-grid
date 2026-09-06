@@ -21,9 +21,9 @@ what the operator can do and what the tiles look like; it moves nothing. That gu
 what lets a host toggle the mode freely without risking the saved arrangement.
 
 The one case where mode changes state is a gesture in flight. Setting the mode to `live`
-while a tile is being dragged reverts that gesture, because the operator can no longer see
-or steer it. Reverting rather than committing is the safe reading: an interrupted gesture
-is not a decision.
+during a move or a resize reverts that gesture and releases pointer capture, because the
+operator can no longer see or steer it. Reverting rather than committing is the safe
+reading: an interrupted gesture is not a decision.
 
 ## Description
 
@@ -35,8 +35,10 @@ Mode is a single input on `GridComponent`, and everything else derives from it.
   signal `mode() === 'edit'`, and it is the only condition the rest of the component
   tests.
 - **`GridComponent.tabIndexOf(tile)`** — returns `0` for an unlocked tile in `edit` mode
-  and `-1` otherwise. Tiles are rendered in row-major order, so document order and the tab
-  order agree without a `tabindex` above zero.
+  and `-1` otherwise. The template iterates `GridComponent.orderedTiles`, which sorts by
+  `y`, then `x`, then `id`, so document order already matches reading order and the tab
+  order follows it without a `tabindex` above zero. The supplied layout carries no such
+  guarantee, which is why the sort exists rather than being assumed.
 - **`grid.css`** — the stylesheet keys the move cursor, the resize handle's visibility,
   and the focus ring off a `data-mode` attribute written on the host. Presenting the
   affordances in CSS rather than in a template branch means the mode switch is one

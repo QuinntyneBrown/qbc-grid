@@ -55,10 +55,12 @@ announcement.
 - **`GridComponent.announcement`** — signal bound into a polite `aria-live` region in the
   grid's template. Writing text into an existing region, rather than inserting one, is what
   makes the announcement reliable.
-- **`GridComponent.settling`** — the short window during which the overlay stays visible
-  after a keyboard command. A keyboard command has no gesture duration, so without the
-  window [`reveal-the-grid`](../reveal-the-grid/) would flash the overlay for a single
-  frame or not show it at all.
+- **`GridComponent.settling`** — the window during which the overlay stays visible after a
+  keyboard command, lasting `--qbc-duration-settle`, the same token the revert animation
+  uses. A keyboard command has no gesture duration of its own, so without the window
+  [`reveal-the-grid`](../reveal-the-grid/) would flash the overlay for a single frame or
+  not show it at all. A second command while the window is open extends it rather than
+  opening another, so holding an arrow key reveals the grid once and hides it once.
 
 Focus stays on the tile across a committed command. The tile element is not re-created — it
 is repositioned through its custom properties — so focus survives without being restored,

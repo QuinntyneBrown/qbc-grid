@@ -56,9 +56,10 @@ class GridComponent {
   +mode: InputSignal<GridMode>
   +layoutChange: OutputEmitterRef<GridTile[]>
   +tiles: Signal<readonly GridTile[]>
+  +orderedTiles: Signal<readonly GridTile[]>
   +metrics: Signal<GridMetrics>
   +rowCount: Signal<number>
-  +addTile(tile: Partial<GridTile>): void
+  +addTile(request: AddTileRequest): void
   +removeTile(id: string): void
 }
 

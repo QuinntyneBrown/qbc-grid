@@ -13,9 +13,12 @@ width is not configured — it is computed from the width the host container giv
 grid, so the same layout fills a 1280 px panel and a 2560 px panel without any tile
 record changing.
 
-Rows behave differently from columns. The column count is fixed by configuration and
-never changes, which is what makes a saved layout portable. Rows are unbounded: the
-grid grows downward to whatever the lowest occupied tile needs.
+Rows behave differently from columns. The column count comes from configuration and is
+never derived from the viewport, which is what makes a saved layout portable across
+screens. A host may still configure a different count, and a layout restored into a
+narrower grid is clamped to fit by
+[`normalize-supplied-layout`](../normalize-supplied-layout/). Rows are unbounded: the grid
+grows downward to whatever the lowest occupied tile needs.
 
 Configuration reaching the grid is coerced rather than trusted, because the grid is a
 published library and a caller can pass `0`, `-4`, or `NaN`. Coercion keeps a bad value
@@ -29,8 +32,20 @@ repository requires.
 
 - **`GridComponent`** — Angular standalone component with selector `qbc-grid`. It holds
   the signal inputs `layout`, `columns`, `rowHeight`, `gap`, and `mode`, and the output
-  `layoutChange`. It exposes the computed signals `tiles`, `metrics`, and `rowCount`,
-  and the methods `addTile` and `removeTile`.
+  `layoutChange`. It exposes `tiles`, the computed signals `orderedTiles`, `metrics`, and
+  `rowCount`, and the methods `addTile` and `removeTile`.
+- **`GridComponent.tiles`** — a linked signal rather than a computed one, because it is
+  read from two directions. Its source is the repaired `layout` input, so a new layout from
+  the host replaces it wholesale; and `commit` writes it directly, so a drag, a keyboard
+  command, an add, and a remove each change it without a round trip through the host. A
+  computed signal cannot serve here at all — it is read-only, and every one of those five
+  paths writes. Collaborators receive it as a plain `Signal`, so the write remains the
+  component's alone.
+
+  Naming the input `layout` and the output `layoutChange` also gives a host the option of
+  `[(layout)]`. That loop terminates: the emitted layout is already repaired and already
+  sorted, so feeding it back produces an identical value, `commit` finds nothing changed,
+  and nothing is emitted a second time.
 - **`GridTileTemplateDirective`** — directive with selector `[qbcGridTile]`. It captures
   the `TemplateRef` the host declares for a tile's content and hands it to
   `GridComponent`, which instantiates it once per tile with the tile as the implicit
@@ -47,14 +62,35 @@ repository requires.
   the documented default for any non-finite value.
 - **`rectOf`** — pure function converting a `GridCell` and a `GridMetrics` into the pixel
   `Rectangle` the tile occupies.
+- **`GridComponent.orderedTiles`** — computed signal sorting `tiles` by `y`, then `x`,
+  then `id`, and the only list the template iterates. Position comes from custom
+  properties rather than document flow, so the sort has no visual effect; its whole purpose
+  is that document order then matches reading order, which is what gives the tab order in
+  `edit` mode its row-major sequence without a positive `tabindex`. `tiles()` keeps the
+  normalized order and remains what the grid emits, so sorting for the screen never
+  changes what a host stores. The loop is tracked by `id`, so a commit that changes the
+  sort moves the existing elements rather than rebuilding them, and the projected views
+  survive as [`project-tile-content`](../../library-delivery/project-tile-content/)
+  requires.
 
 `GridComponent` writes the metrics onto its host element as the custom properties
 `--qbc-grid-columns`, `--qbc-grid-column-width`, `--qbc-grid-row-height`, and
 `--qbc-grid-gap`, and writes each tile's geometry onto that tile's element as
-`--qbc-tile-x`, `--qbc-tile-y`, `--qbc-tile-cols`, and `--qbc-tile-rows`. Position is
+`--qbc-tile-x`, `--qbc-tile-y`, `--qbc-tile-cols`, and `--qbc-tile-rows`. Both are written
+as Angular style bindings on custom properties, which is enough for values that change
+when a layout changes. The two properties a drag moves every frame —
+`--qbc-drag-offset-x` and `--qbc-drag-offset-y` — are the exception: they are set
+imperatively on the one element being dragged, described in
+[`hold-the-frame-budget`](../../library-delivery/hold-the-frame-budget/), so that a
+gesture does not schedule change detection sixty times a second. Position is
 then a `transform: translate3d(...)` built with `calc()` in the stylesheet, and size is
 a `calc()` width and height. Keeping the arithmetic in CSS means a container resize
 repositions every tile without the component touching a single element.
+
+The grid host carries the computed height and does not clip: an absolutely positioned tile
+sits inside a host whose height follows the lowest occupied row, with no `overflow` rule
+hiding what extends past it. A tile moved to row 40 therefore lengthens the host and the
+page scrolls to it, rather than disappearing behind a clipped edge.
 
 Sub-pixel column widths are kept as fractions rather than rounded per tile. Rounding
 each tile independently accumulates drift across a row and leaves the last tile short

@@ -53,9 +53,14 @@ The separation stage is bounded: a record can be pushed at most as far as one ro
 the lowest occupied row, so a layout of 500 records completes rather than searching
 without limit.
 
-`GridComponent` runs `normalizeLayout` on every change of the `layout` input, and routes
-a repaired result through the same private `commit` method that every other change uses.
-That is why a repair emits exactly once, like every other change.
+`GridComponent` runs `normalizeLayout` on every change of the `layout` input, as the source
+computation of the `tiles` linked signal described in [`render-grid`](../render-grid/).
+
+The emission cannot happen there. A signal computation is pure and lazy: emitting an output
+from inside one would fire at whatever moment something first read the signal, or not at
+all. So the computation only produces the `LayoutRepair`, and a small effect watches its
+`repaired` flag and emits once when a repair has occurred. Reporting the repair is a side
+effect of a new layout arriving, and it is modelled as one.
 
 ## Requirements
 

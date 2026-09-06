@@ -1,0 +1,86 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Distribute and theme the grid
+
+class PublicApi <<entry point>> {
+  +GridComponent
+  +GridTileTemplateDirective
+  +GridTile
+  +GridMode
+  +AddTileRequest
+}
+
+class PackageManifest <<manifest>> {
+  +name: qbc-grid
+  +peerDependencies: @angular/core, @angular/common
+  +dependencies: none
+  +sideEffects: false
+}
+
+class ColourTokens <<tokens>> {
+  +--qbc-color-surface
+  +--qbc-color-surface-raised
+  +--qbc-color-border
+  +--qbc-color-accent
+  +--qbc-color-accent-soft
+  +--qbc-color-danger
+  +--qbc-color-danger-soft
+  +--qbc-color-grid-line
+  +--qbc-color-focus
+}
+
+class MetricTokens <<tokens>> {
+  +--qbc-space-1
+  +--qbc-space-2
+  +--qbc-space-3
+  +--qbc-space-4
+  +--qbc-radius-sm
+  +--qbc-radius-md
+  +--qbc-border-width-hairline
+  +--qbc-border-width-emphasis
+  +--qbc-size-handle
+}
+
+class ExpressionTokens <<tokens>> {
+  +--qbc-elevation-resting
+  +--qbc-elevation-drag
+  +--qbc-layer-drag
+  +--qbc-duration-fast
+  +--qbc-duration-settle
+  +--qbc-easing-standard
+}
+
+class GridStyles <<stylesheet>> {
+  +tile surface, border, and radius
+  +shadow valid and invalid fills
+  +overlay line colour
+  +focus ring
+  +handle hit area
+  +drag stacking level
+  +settle transition
+}
+
+class GridComponent {
+  +layout: InputSignal<readonly GridTile[]>
+  +mode: InputSignal<GridMode>
+  +layoutChange: OutputEmitterRef<GridTile[]>
+}
+
+PublicApi --> GridComponent : exports
+PackageManifest ..> PublicApi : publishes
+GridStyles ..> ColourTokens : reads
+GridStyles ..> MetricTokens : reads
+GridStyles ..> ExpressionTokens : reads
+GridComponent --> GridStyles : is styled by
+@enduml

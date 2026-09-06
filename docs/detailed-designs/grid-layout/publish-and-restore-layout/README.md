@@ -11,11 +11,18 @@ The contract is plain data. A layout is an array of records holding `id`, `x`, `
 `JSON.stringify` badly. That is what lets a host persist a layout anywhere without
 knowing anything about the grid.
 
+An emitted record carries the whole tile, not only its geometry. Any `label`, `minCols`,
+`minRows`, `maxCols`, and `maxRows` the host supplied are carried through unchanged, so a
+save and restore does not quietly strip a tile's accessible name or its size limits. A
+grid that emitted geometry alone would return a layout whose tiles announce themselves by
+`id` and resize past the bounds their host set.
+
 Timing matters as much as shape. The grid emits on **change**, not on **movement**. A
 drag across 300 pixels of pointer travel produces one emission at release, not one per
-pointer event. Emitting per event would flood any persistence the host attaches and would
-publish geometries the operator never chose, since a drag passes over many cells on the
-way to the one it lands on.
+pointer event — and a drag that wanders across the grid and returns to where it began
+produces none at all, because nothing changed. Emitting per event would flood any
+persistence the host attaches and would publish geometries the operator never chose, since
+a drag passes over many cells on the way to the one it lands on.
 
 The round trip carries one guarantee: a layout the grid emitted, supplied back to a grid
 with the same configuration, renders identically and emits nothing. Emitting on restore
@@ -32,9 +39,12 @@ service contract.
 - **`GridComponent.layoutChange`** — Angular output carrying `GridTile[]`. It fires from
   the private `commit` method and from nowhere else, which is why the "exactly once per
   change" guarantee holds across add, remove, interaction, and repair alike.
-- **`GridComponent.commit`** — builds a fresh array of fresh records before emitting.
-  Handing out the grid's own array would let a host mutate the grid's state by accident;
-  a copy makes the emitted value inert.
+- **`GridComponent.commit`** — the single emission gate. It compares the proposed tiles
+  with the current ones and returns without emitting when every geometry is identical, so a
+  drag that lands a tile back on the cells it started from is not a change and produces
+  nothing. When something did change, it builds a fresh array of fresh records before
+  emitting: handing out the grid's own array would let a host mutate the grid's state by
+  accident, and a copy makes the emitted value inert.
 - **`DashboardComponent`** — in the `domain` library. It injects `DASHBOARD_SERVICE`,
   binds the loaded layout into `qbc-grid`, and calls `save` on each emission. It holds the
   layout in a signal rather than an observable, since the layout is state rather than a

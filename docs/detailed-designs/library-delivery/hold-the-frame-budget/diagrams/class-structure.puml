@@ -1,0 +1,65 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure - Hold the frame budget
+
+class GridFrameScheduler {
+  -handle: number | null
+  -pending: (() => void) | null
+  +schedule(write: () => void): void
+  +flush(): void
+  +stop(): void
+}
+
+interface GridGestureCache {
+  +gridLeft: number
+  +gridTop: number
+  +columnWidth: number
+  +rowHeight: number
+  +gap: number
+  +grabOffsetX: number
+  +grabOffsetY: number
+}
+
+class GridPointerSession {
+  -cache: GridGestureCache
+  -scheduler: GridFrameScheduler
+  +start(kind: GridInteractionKind, tile: GridTile, event: PointerEvent, metrics: GridMetrics): void
+  +track(event: PointerEvent): void
+  +release(): GridCell | null
+  +cancel(): void
+}
+
+class cellAt <<function>> {
+  +cellAt(left: number, top: number, span: GridCell, metrics: GridMetrics): GridCell
+}
+
+class canPlace <<function>> {
+  +canPlace(others: readonly GridTile[], candidate: GridCell, columns: number): boolean
+}
+
+class GridTileStyles <<stylesheet>> {
+  +--qbc-tile-x
+  +--qbc-tile-y
+  +--qbc-drag-offset-x
+  +--qbc-drag-offset-y
+  +--qbc-elevation-drag
+}
+
+GridPointerSession *-- GridFrameScheduler : owns
+GridPointerSession --> GridGestureCache : measures once
+GridPointerSession ..> cellAt : snaps with
+GridPointerSession ..> canPlace : validates with
+GridFrameScheduler ..> GridTileStyles : writes at most once per frame
+cellAt ..> GridGestureCache : reads cached numbers
+@enduml

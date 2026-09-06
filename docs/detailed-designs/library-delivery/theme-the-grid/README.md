@@ -1,0 +1,110 @@
+# Distribute and theme the grid
+
+## Overview
+
+`qbc-grid` is meant to be installed by applications that have nothing to do with this
+repository. That ambition sets two constraints, and this feature is both of them.
+
+The first is **dependency direction**. The grid lives in the `components` library, whose
+place in the workspace is the leaf: it imports nothing from the application, nothing from
+the `api` or `domain` libraries, and injects no service defined outside itself. Angular is
+a peer dependency rather than a dependency, so a consumer's Angular is the only Angular in
+the tree. A component that discovers it needs a service does not gain one here — it moves
+to `domain`, and stays out of the published package.
+
+The second is **restyling without forking**. Every colour, dimension, radius, elevation,
+border width, and transition duration in the grid's stylesheets is read as a
+`var(--qbc-<role>)` custom property. A consumer who wants the drop shadow in their own
+accent colour redefines one token on a host element and the cascade does the rest. A
+hard-coded hex or pixel value in a component stylesheet is a defect, because it is a value
+no consumer can reach.
+
+The design system owns those tokens, and it is a deliverable rather than a folder. It sits
+at `design-system/`, beside `backend/` and `frontend/`, with its own package, its own
+tests, and its own static site, and it carries no runtime dependency on the application.
+Its copy of the tokens is authoritative; the front end mirrors them. When the grid needs a
+value that has no token, the token is added to the design system first.
+
+## Description
+
+The slice is a package shape, an entry point, and a token catalogue.
+
+- **`public-api.ts`** — the library's entry point, exporting `GridComponent`,
+  `GridTileTemplateDirective`, and the three types a consumer binds against: `GridTile`,
+  `GridMode`, and `AddTileRequest`. Nothing else is exported. `GridShadow`,
+  `GridInteraction`, `GridMetrics`, and the pure layout functions are internal, because no
+  consumer needs to name them to render a grid, add a tile, or read a layout — and every
+  exported name is one the library then owes stability to.
+- **`package.json`** — declares `@angular/core` and `@angular/common` as peer dependencies,
+  no runtime dependencies, and `sideEffects: false`. It references no package from this
+  workspace.
+- **`qbc-tokens.css`** — the authoritative token file in `design-system/`, in three groups:
+  - **Colour** — `--qbc-color-surface`, `--qbc-color-surface-raised`, `--qbc-color-border`,
+    `--qbc-color-accent`, `--qbc-color-accent-soft`, `--qbc-color-danger`,
+    `--qbc-color-danger-soft`, `--qbc-color-grid-line`, `--qbc-color-focus`.
+  - **Metric** — the four-step spacing scale `--qbc-space-1` through `--qbc-space-4`,
+    `--qbc-radius-sm`, `--qbc-radius-md`, `--qbc-border-width-hairline`,
+    `--qbc-border-width-emphasis`, and `--qbc-size-handle`, the resize handle's hit area.
+    The scale belongs to the design system rather than to the grid, and the grid spends one
+    step of it: `--qbc-space-1` sets the resize handle's inset from the tile corner and the
+    focus ring's offset from the tile edge. The remaining steps serve other consumers, and
+    the grid imposes no padding of its own on projected content.
+  - **Expression** — `--qbc-elevation-resting`, `--qbc-elevation-drag`,
+    `--qbc-layer-drag`, `--qbc-duration-fast`, `--qbc-duration-settle`, and
+    `--qbc-easing-standard`. `--qbc-layer-drag` is the stacking level a tile takes while it
+    is dragged; a consumer whose application has its own stacking scale redefines it rather
+    than fighting a literal in the library.
+- **`grid.css`** — reads those tokens for the tile surface and border, the valid and
+  invalid shadow fills, the overlay line, the focus ring and its offset, the handle hit area
+  and inset, the drag stacking level, and the settle transition. Every token is read with a
+  fallback to the design system's default, so a consumer who has not loaded the token file
+  still gets a legible grid rather than an unpainted one.
+
+  One value resists a token override. `L2-015` fixes the resize handle's hit area at no less
+  than 16 px, which is an accessibility floor rather than a matter of taste, so the
+  stylesheet takes the larger of that floor and `--qbc-size-handle`. A consumer may enlarge
+  the target and may not shrink it below the requirement. The floor is a length, and not one
+  of the colour, radius, shadow, or duration values `L2-034` holds to tokens.
+- **The token gallery** — the design system's static site, rendering every token beside the
+  grid states that consume it, so a change to a token is reviewable before it reaches an
+  application.
+
+The grid's own layout custom properties — `--qbc-grid-column-width`, `--qbc-tile-x`, and
+their siblings — are computed values the component writes at run time, not design tokens. A
+consumer reads them but does not set them.
+
+## Requirements
+
+The feature realizes the following level-2 (L2) requirements. Each L2 requirement refines
+a level-1 (L1) requirement, cited by identifier.
+
+| L2 ID | Refines (L1) | Requirement |
+|-------|--------------|-------------|
+| `L2-033` | `L1-014` | The grid shall be published from the `components` library as standalone Angular components, shall import nothing from the application or from the `api` and `domain` libraries, shall inject no service defined outside the library, and shall declare Angular as a peer dependency. |
+| `L2-034` | `L1-014` | The grid stylesheets shall read every colour, spacing, radius, elevation, border width, and transition duration as a `var(--qbc-<role>)` custom property owned by the design system. |
+
+## Diagrams
+
+The system context and container views are shared across every feature and are held at
+the [tree root](../../README.md#where-the-c4-levels-live).
+
+### Components
+
+The design system supplies tokens to the component stylesheet; the entry point and the
+manifest supply the package to a consumer. Nothing flows the other way.
+
+![C4 component view for distributing and theming the grid](diagrams/c4-component.png)
+
+### Class structure
+
+The published surface is five exports. The token catalogue is three groups, and the
+stylesheet reads all of them.
+
+![Class diagram for distributing and theming the grid](diagrams/class-structure.png)
+
+### Behaviour — install the library and restyle it with tokens
+
+A consumer installs the package against their own Angular, and redefines two tokens to
+change the shadow's colours without touching the library.
+
+![Sequence diagram for installing and restyling the grid](diagrams/sequence-consume-and-restyle.png)

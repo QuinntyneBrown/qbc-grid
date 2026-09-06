@@ -6,11 +6,16 @@ The `grid-layout` subsystem owns the cell model and the layout data contract. It
 answers three questions: where a tile sits on screen, what the layout looks like as
 plain data, and what happens when the data supplied to the grid is wrong.
 
-Everything in this subsystem is deterministic and free of DOM interaction. The pure
-functions it introduces — `normalizeLayout`, `clampTile`, `overlaps`, `canPlace`,
-`findFreeCell`, `cellAt`, and `rectOf` — take values and return values, which is what
-lets the interaction subsystem reuse them for a drag preview and a keyboard nudge
-without duplicating the rules.
+The subsystem's decisions are deterministic: the same layout and the same column count
+always produce the same result. The pure functions it introduces — `coerceGridOptions`,
+`normalizeLayout`, `clampTile`, `overlaps`, `canPlace`, `findFreeCell`, and `rectOf` —
+take values and return values, which is what lets the interaction subsystem reuse them
+for a drag preview and a keyboard nudge without duplicating the rules.
+
+One measurement is not pure and cannot be. `GridComponent` reads its host's content width
+to derive `columnWidth`, because no arithmetic can know how wide a container the host
+gave it. That read is made once per width change, never inside a gesture, and it is the
+subsystem's only contact with the DOM.
 
 ## Features
 

@@ -22,9 +22,9 @@ limits before it is validated.
 Those limits are the tile's own. `minCols` and `minRows` default to 1 and stop a tile from
 collapsing to nothing; `maxCols` and `maxRows` are optional, and `maxCols` is additionally
 held to the grid's column count, so a tile declaring `maxCols` of 20 in a 12-column grid
-simply reaches 12. Clamping never invalidates the shadow — an over-dragged handle parks at
-the limit rather than turning red, which is what makes the boundary feel like a wall
-rather than an error.
+reaches 12 and no further. Clamping never invalidates the shadow — an over-dragged
+handle parks at the limit rather than turning red, which is what makes the boundary feel
+like a wall rather than an error.
 
 Overlap is different from a limit. A span that would cover a neighbour is refused, shown
 in the invalid colour, and reverted on release, exactly as a move onto occupied cells is.
@@ -36,9 +36,12 @@ The feature adds one template element and one pure function to the machinery alr
 described in [`move-a-tile`](../move-a-tile/).
 
 - **The resize handle** — an element rendered inside each unlocked tile in `edit` mode, at
-  the bottom-right corner. Its hit area is set from the design tokens to at least 16 px
-  square, and it may extend beyond its visual bounds. `pointerdown` on the handle stops
-  propagation, so the press starts a resize and never a move.
+  the bottom-right corner, inset by `--qbc-space-1`. Its hit area is the larger of
+  `--qbc-size-handle` and the 16 px floor this requirement sets, so a consumer restyling the
+  grid can enlarge the target but cannot shrink it below what `L2-015` demands. The hit area
+  may extend beyond the handle's visual bounds, which is what lets a small corner grip stay
+  easy to catch. `pointerdown` on the handle stops propagation, so the press starts a resize
+  and never a move.
 - **`GridComponent.onHandlePointerDown`** — starts `GridPointerSession` with a `kind` of
   `resize`. The session records the origin cell and holds `x` and `y` fixed for the
   duration.

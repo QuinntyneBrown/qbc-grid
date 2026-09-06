@@ -35,11 +35,17 @@ loop for each pointer move
 end
 actor -> session : Release the pointer on a valid target
 session -> grid : Commit the shadow geometry
-grid -> grid : Freeze one record per tile per L2-023
-grid --> dashboard : layoutChange with id, x, y, cols, rows, locked
-dashboard -> service : save(layout)
-service -> store : Write the layout as JSON
-store --> service : Written
-service --> dashboard : Saved
-dashboard --> actor : Present the committed arrangement
+grid -> grid : Compare the proposed tiles with the current ones
+alt the geometry is unchanged
+  grid -> grid : Emit nothing, because a drop on the origin cells is not a change
+  grid --> actor : Present the arrangement as it already stood
+else the geometry changed
+  grid -> grid : Freeze one record per tile per L2-023
+  grid --> dashboard : layoutChange with id, x, y, cols, rows, locked
+  dashboard -> service : save(layout)
+  service -> store : Write the layout as JSON
+  store --> service : Written
+  service --> dashboard : Saved
+  dashboard --> actor : Present the committed arrangement
+end
 @enduml

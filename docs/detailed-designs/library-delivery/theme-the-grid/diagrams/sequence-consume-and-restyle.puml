@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour - Install the library and restyle it with tokens
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Consuming developer" as dev
+actor "Dashboard operator" as operator
+box "Frontend - consuming application" #E0F2FE
+  participant "Application shell" as app
+end box
+box "Frontend - components library" #ECFDF3
+  participant "public-api.ts" as entry
+  participant "GridComponent" as grid
+  participant "grid.css" as styles
+end box
+box "Design system - qbc tokens" #D1FADF
+  participant "qbc-tokens.css" as tokens
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+dev -> app : Install the package with Angular already present
+app -> entry : Import GridComponent and GridTileTemplateDirective
+note over entry, grid : Angular is a peer dependency, and no application package is referenced per L2-033
+app -> grid : Render a grid with two tiles in edit mode
+grid -> styles : Apply the component stylesheet
+styles -> tokens : Read every colour, dimension, elevation, and duration per L2-034
+tokens --> styles : Design-system defaults
+styles -> dom : Paint the grid
+dom --> operator : Present a draggable dashboard
+
+dev -> app : Redefine --qbc-color-accent and --qbc-color-danger on a host element
+app -> dom : Set the overriding custom properties
+operator -> dom : Drag a tile
+dom -> styles : Resolve the shadow fill
+styles -> tokens : Read the overridden values, cascaded from the host
+tokens --> styles : The application colours
+styles -> dom : Paint the shadow in the application colours
+dom --> operator : Present the restyled shadow, with no change to the library per L2-034
+@enduml

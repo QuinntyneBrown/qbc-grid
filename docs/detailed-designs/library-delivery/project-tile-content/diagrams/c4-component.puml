@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components - Project tile content
+
+Container_Boundary(components, "components library") {
+  Component(grid, "GridComponent", "Angular standalone component", "Tracks tiles by id and instantiates the host template once per tile")
+  Component(tpl, "GridTileTemplateDirective", "Angular directive", "Captures the TemplateRef the host declares")
+  Component(ctx, "GridTileContext", "TypeScript type", "The tile handed to the template as the implicit value")
+  Component(outlet, "tile outlet", "Template element", "ngTemplateOutlet instance, repositioned but never re-created")
+}
+
+Container_Boundary(domainlib, "domain library") {
+  Component(dash, "DashboardComponent", "Angular standalone component", "Declares the per-tile template")
+  Component(widget, "Telemetry widget", "Angular component", "Host content whose state survives a move")
+}
+
+System_Ext(browser, "Desktop browser", "DOM")
+
+Rel(dash, tpl, "Declares the qbcGridTile template on")
+Rel(dash, widget, "Renders inside the template")
+Rel(tpl, grid, "Supplies the TemplateRef to")
+Rel(grid, ctx, "Builds one per tile")
+Rel(grid, outlet, "Instantiates the template into")
+Rel(outlet, browser, "Creates the projected view once in", "DOM")
+Rel(grid, browser, "Repositions the outlet with custom properties in", "DOM")
+@enduml

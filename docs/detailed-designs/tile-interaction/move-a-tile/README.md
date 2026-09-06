@@ -38,12 +38,21 @@ for recognizing the gesture.
   the target, and validates it. `release` returns the target cell, or `null` when the
   shadow was invalid. `cancel` discards the gesture. The grab offset is what keeps the
   tile from jumping to centre itself under the cursor on the first move.
+- **`GridInteractionKind`** — the union `'move' | 'resize'`. It is the one field that
+  distinguishes the two gestures, and it is why there is one session class rather than two:
+  a move and a resize differ in how the candidate cell is derived and in whether the origin
+  corner is pinned, and in nothing else.
 - **`GridInteraction`** — the gesture as a value: `kind`, `tileId`, `origin`,
   `grabOffsetX`, `grabOffsetY`, `pointerId`, and the current `GridShadow`. Holding the
   gesture beside the committed tile list, rather than mutating that list, is what makes
   reverting free — the committed tiles were never touched.
 - **`GridShadow`** — `{ cell, valid }`. One value drives both the shadow's position and its
   colour, so the picture and the outcome cannot disagree.
+- **The raised stacking level** — the dragged tile takes `--qbc-layer-drag` for the
+  duration of the gesture. Document order is sorted by position rather than by interaction,
+  so a tile dragged upward would otherwise paint beneath the tiles it passes over. The
+  level is applied with the drag elevation, once at gesture start and once at its end, so it
+  costs nothing per frame.
 - **`GridFrameScheduler`** — collapses any number of pointer events in one animation frame
   into a single style write, described in
   [`hold-the-frame-budget`](../../library-delivery/hold-the-frame-budget/).
@@ -58,10 +67,36 @@ The threshold is 3 px. Below it there is no drag at all, and the pointer sequenc
 an ordinary click, which is what lets a button inside a tile stay clickable in `edit` mode.
 Pointer capture is requested only once the threshold is crossed, for the same reason.
 
-`GridComponent` listens for `pointerdown` on a tile, and for `pointermove`, `pointerup`,
-`pointercancel`, `keydown`, and window `blur` while a session is active. On a valid
-release it routes the new geometry through the private `commit` method, so a move emits
-exactly once like every other change.
+Pointer Events are used because they are one API for the mouse across every target
+browser, not because the grid reaches for the touch and pen inputs they also carry. The
+grid sets no `touch-action` rule and adapts no hit target for a fingertip, so a touch drag
+competes with the browser's own scrolling and is neither supported nor deliberately
+blocked. Touch is out of scope, and this is the shape that exclusion takes in the code.
+
+Where each listener lives follows from what it has to catch. `pointerdown` is bound on the
+tile. Once the threshold is crossed, `setPointerCapture` on that tile makes every later
+`pointermove`, `pointerup`, and `pointercancel` for that pointer arrive at the tile even
+when the cursor has left it, so those three stay bound to the tile and the grid adds no
+window-level pointer listeners at all.
+
+Two events capture cannot deliver. `Escape` is a keyboard event and goes wherever focus is,
+which during a pointer drag is usually not the tile; and `blur` is a window event by
+definition. Both are therefore bound on the window, added when the gesture starts and
+removed when it ends, so an idle grid holds no window listeners. Binding `Escape` to the
+tile instead would leave the key dead in exactly the common case — a drag begun without
+first clicking the tile into focus.
+
+Teardown is a fourth exit beside commit, revert, and cancel. When `GridComponent` is
+destroyed mid-gesture, `GridPointerSession.destroy()` stops the frame scheduler, removes the
+window listeners, and releases pointer capture, guarding that release because the tile may
+already have been removed from the document — which is the same path
+[`add-and-remove-tiles`](../../grid-layout/add-and-remove-tiles/) takes when the dragged
+tile is the one being removed.
+
+On a valid release the session routes the new geometry through the private `commit` method,
+so a move emits exactly once like every other change. A release onto the cells the tile started from
+reaches `commit` like any other, and `commit` finds nothing changed and emits nothing, so
+the rule lives in one place rather than in each gesture.
 
 ## Requirements
 
@@ -74,7 +109,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | `L2-010` | `L1-004` | While a drag is in progress the grid shall translate the dragged tile with the pointer in pixels and shall paint it above every other tile with the drag elevation. |
 | `L2-011` | `L1-004` | While a drag is in progress the grid shall draw a shadow at the cell nearest the dragged tile top-left corner, with `x` clamped to `[0, columns - cols]` and `y` clamped to at least 0. |
 | `L2-012` | `L1-004` | The grid shall render the shadow in its invalid state when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |
-| `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, and emit the complete layout exactly once. |
+| `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, and emit the complete layout exactly once when the adopted geometry differs from the geometry the tile held. |
 | `L2-014` | `L1-004` | The grid shall revert a drag and release pointer capture on `Escape`, on `pointercancel`, and when the window loses focus. |
 
 ## Diagrams
