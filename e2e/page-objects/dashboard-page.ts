@@ -359,6 +359,263 @@ export class DashboardPageObject {
     }, type);
   }
 
+  /**
+   * Watches every tile for style-attribute mutations, grouped by animation frame. A write
+   * is one mutation of the style attribute rather than one property assignment, because
+   * one render transaction is what reaches the browser.
+   */
+  async watchTileMutations(): Promise<void> {
+    await this.page.evaluate(() => {
+      const record: { frame: number; id: string }[] = [];
+      let frame = 0;
+      const tick = () => {
+        frame += 1;
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          const element = mutation.target as HTMLElement;
+          const id = element.getAttribute('data-qbc-tile');
+          if (id !== null) record.push({ frame, id });
+        }
+      });
+      for (const tile of document.querySelectorAll('[data-qbc-tile]')) {
+        observer.observe(tile, { attributes: true, attributeFilter: ['style', 'class'] });
+      }
+      (window as unknown as { __qbcWrites: typeof record }).__qbcWrites = record;
+    });
+  }
+
+  async tileMutationsPerFrame(): Promise<{ frame: number; writes: number }[]> {
+    return this.page.evaluate(() => {
+      const record = (window as unknown as { __qbcWrites: { frame: number }[] }).__qbcWrites;
+      const byFrame = new Map<number, number>();
+      for (const entry of record) byFrame.set(entry.frame, (byFrame.get(entry.frame) ?? 0) + 1);
+      return [...byFrame.entries()].map(([frame, writes]) => ({ frame, writes }));
+    });
+  }
+
+  async mutatedTileIds(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const record = (window as unknown as { __qbcWrites: { id: string }[] }).__qbcWrites;
+      return [...new Set(record.map((entry) => entry.id))];
+    });
+  }
+
+  async watchShadowMutations(): Promise<void> {
+    await this.page.evaluate(() => {
+      const store = window as unknown as { __qbcShadowWrites: number };
+      store.__qbcShadowWrites = 0;
+      const shadow = document.querySelector('[data-qbc-shadow]');
+      if (shadow === null) return;
+      new MutationObserver((mutations) => {
+        store.__qbcShadowWrites += mutations.length;
+      }).observe(shadow, { attributes: true, attributeFilter: ['style', 'data-valid'] });
+    });
+  }
+
+  async shadowMutationCount(): Promise<number> {
+    return this.page.evaluate(
+      () => (window as unknown as { __qbcShadowWrites: number }).__qbcShadowWrites,
+    );
+  }
+
+  /**
+   * Counts reads of the properties that force the browser to lay out before answering.
+   * A pointer event that reaches any of them has done layout work the budget forbids.
+   */
+  async watchLayoutReads(): Promise<void> {
+    await this.page.evaluate(() => {
+      const store = window as unknown as { __qbcLayoutReads: number };
+      store.__qbcLayoutReads = 0;
+      const original = Element.prototype.getBoundingClientRect;
+      Element.prototype.getBoundingClientRect = function patched(this: Element) {
+        store.__qbcLayoutReads += 1;
+        return original.call(this);
+      };
+      for (const name of ['offsetWidth', 'offsetHeight', 'clientWidth', 'clientHeight']) {
+        const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, name);
+        if (descriptor?.get === undefined) continue;
+        const getter = descriptor.get;
+        Object.defineProperty(HTMLElement.prototype, name, {
+          ...descriptor,
+          get(this: HTMLElement) {
+            store.__qbcLayoutReads += 1;
+            return getter.call(this);
+          },
+        });
+      }
+    });
+  }
+
+  async layoutReadCount(): Promise<number> {
+    return this.page.evaluate(
+      () => (window as unknown as { __qbcLayoutReads: number }).__qbcLayoutReads,
+    );
+  }
+
+  /** Dispatches many pointer moves inside a single animation frame. */
+  async dispatchPointerMovesInOneFrame(id: string, count: number): Promise<void> {
+    await this.tile(id).evaluate(async (element, moves) => {
+      const box = element.getBoundingClientRect();
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => {
+          for (let step = 0; step < moves; step += 1) {
+            element.dispatchEvent(
+              new PointerEvent('pointermove', {
+                bubbles: true,
+                pointerId: 1,
+                isPrimary: true,
+                clientX: box.left + 10 + step * 7,
+                clientY: box.top + 10,
+              }),
+            );
+          }
+          resolve();
+        }),
+      );
+    }, count);
+    await this.page.evaluate(
+      () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
+    );
+  }
+
+  /** Moves and releases inside one frame, so the release outruns the scheduled write. */
+  async moveAndReleaseInOneFrame(dx: number, dy: number): Promise<void> {
+    const position = await this.pointerPosition();
+    await this.page.evaluate(
+      async ({ x, y }) => {
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => {
+            const target = document.elementFromPoint(
+              Math.min(Math.max(x, 0), innerWidth - 1),
+              Math.min(Math.max(y, 0), innerHeight - 1),
+            );
+            const options = { bubbles: true, pointerId: 1, isPrimary: true, clientX: x, clientY: y };
+            (target ?? document.body).dispatchEvent(new PointerEvent('pointermove', options));
+            (target ?? document.body).dispatchEvent(new PointerEvent('pointerup', options));
+            resolve();
+          }),
+        );
+      },
+      { x: position.x + dx, y: position.y + dy },
+    );
+  }
+
+  /** Moves and cancels inside one frame, leaving a scheduled write behind. */
+  async moveAndCancelInOneFrame(dx: number, dy: number): Promise<void> {
+    const position = await this.pointerPosition();
+    await this.page.evaluate(
+      async ({ x, y }) => {
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => {
+            const options = { bubbles: true, pointerId: 1, isPrimary: true, clientX: x, clientY: y };
+            document.body.dispatchEvent(new PointerEvent('pointermove', options));
+            dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            resolve();
+          }),
+        );
+      },
+      { x: position.x + dx, y: position.y + dy },
+    );
+    await this.page.evaluate(
+      () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
+    );
+  }
+
+  async draggedTileHasOffset(id: string): Promise<boolean> {
+    return this.tile(id).evaluate((element) => {
+      const offset = element.style.getPropertyValue('--qbc-drag-offset-x');
+      return offset !== '' || element.classList.contains('qbc-grid__tile--dragging');
+    });
+  }
+
+  /**
+   * Drags a tile for a fixed time and reports the main-thread work each frame spent on it.
+   *
+   * The quantity is work rather than the interval between frames. An unblocked 60Hz stream
+   * presents every 1000/60 ms, or 16.667, so a budget of 16ms read as an interval fails a
+   * run in which nothing was dropped at all.
+   */
+  async measureDragFrames(options: { seconds: number; runs: number }): Promise<
+    { p95: number; max: number; samples: number }[]
+  > {
+    const results: { p95: number; max: number; samples: number }[] = [];
+    // A warm-up run, discarded, so the first-run compilation cost is not measured.
+    for (let run = 0; run <= options.runs; run += 1) {
+      const measured = await this.measureOneDrag(options.seconds);
+      if (run > 0) results.push(measured);
+    }
+    return results;
+  }
+
+  private async measureOneDrag(
+    seconds: number,
+  ): Promise<{ p95: number; max: number; samples: number }> {
+    const box = await this.tile('tile-0').boundingBox();
+    if (box === null) throw new Error('No tile to drag');
+    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2, { steps: 2 });
+
+    const durations = await this.page.evaluate(
+      async ({ duration, originX, originY }) => {
+        const frames: number[] = [];
+        const start = performance.now();
+        let offset = 0;
+
+        await new Promise<void>((resolve) => {
+          const step = () => {
+            const began = performance.now();
+
+            // Drive the gesture from inside the frame, so the work being measured is the
+            // work a moving pointer causes rather than an idle grid's.
+            offset = (offset + 13) % 400;
+            const x = originX + offset;
+            const y = originY + (offset % 80);
+            const target = document.elementFromPoint(
+              Math.min(Math.max(x, 0), innerWidth - 1),
+              Math.min(Math.max(y, 0), innerHeight - 1),
+            );
+            (target ?? document.body).dispatchEvent(
+              new PointerEvent('pointermove', {
+                bubbles: true,
+                pointerId: 1,
+                isPrimary: true,
+                clientX: x,
+                clientY: y,
+              }),
+            );
+
+            // A task queued from inside the frame runs once the browser has finished
+            // rendering it, so this span covers script, style, layout, and paint — the work
+            // the frame did, rather than the interval until the next one. An unblocked 60Hz
+            // stream presents every 1000/60 ms, and measuring that interval against a 16ms
+            // budget fails a run in which nothing was dropped.
+            setTimeout(() => frames.push(performance.now() - began), 0);
+
+            if (performance.now() - start < duration) requestAnimationFrame(step);
+            else setTimeout(resolve, 50);
+          };
+          requestAnimationFrame(step);
+        });
+        return frames.slice(1);
+      },
+      { duration: seconds * 1000, originX: box.x + box.width / 2, originY: box.y + box.height / 2 },
+    );
+
+    await this.page.mouse.up();
+
+    const sorted = [...durations].sort((a, b) => a - b);
+    const index = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95));
+    return {
+      p95: sorted[index] ?? 0,
+      max: sorted[sorted.length - 1] ?? 0,
+      samples: sorted.length,
+    };
+  }
+
   async emissions(): Promise<number> {
     const value = await this.page.locator('[data-qbc-emissions]').getAttribute('data-qbc-emissions');
     return Number(value);

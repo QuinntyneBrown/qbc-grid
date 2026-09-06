@@ -66,7 +66,7 @@ test.describe('L2-016 resizing snaps to whole cells with a shadow preview', () =
     await dashboard.pressHandle('added-1');
     await dashboard.movePointerBy(2 * (await dashboard.columnPitch()), 0);
 
-    expect(await dashboard.shadowGeometry()).toMatchObject({ cols: 5 });
+    await expect.poll(async () => (await dashboard.shadowGeometry()).cols).toBe(5);
     await dashboard.releasePointer();
   });
 
@@ -108,8 +108,8 @@ test.describe('L2-017 resizing respects declared size limits', () => {
     await dashboard.pressHandle('edge');
     await dashboard.movePointerBy(4000, 0);
 
-    const shadow = await dashboard.shadowGeometry();
-    expect(shadow).toMatchObject({ cols: 3, x: 9 });
+    await expect.poll(async () => (await dashboard.shadowGeometry()).cols).toBe(3);
+    expect((await dashboard.shadowGeometry()).x).toBe(9);
     await dashboard.releasePointer();
   });
 
@@ -121,7 +121,7 @@ test.describe('L2-017 resizing respects declared size limits', () => {
     await dashboard.pressHandle('attitude');
     await dashboard.movePointerBy(-4000, 0);
 
-    expect(await dashboard.shadowGeometry()).toMatchObject({ cols: 2 });
+    await expect.poll(async () => (await dashboard.shadowGeometry()).cols).toBe(2);
     await dashboard.releasePointer();
   });
 
@@ -133,7 +133,7 @@ test.describe('L2-017 resizing respects declared size limits', () => {
     await dashboard.pressHandle('attitude');
     await dashboard.movePointerBy(0, 4000);
 
-    expect(await dashboard.shadowGeometry()).toMatchObject({ rows: 4 });
+    await expect.poll(async () => (await dashboard.shadowGeometry()).rows).toBe(4);
     await dashboard.releasePointer();
   });
 
@@ -145,7 +145,7 @@ test.describe('L2-017 resizing respects declared size limits', () => {
     await dashboard.pressHandle('edge');
     await dashboard.movePointerBy(4000, 0);
 
-    expect(await dashboard.shadowIsValid()).toBe(true);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(true);
     await dashboard.releasePointer();
   });
 });
@@ -162,7 +162,7 @@ test.describe('L2-018 a resize that would overlap is refused', () => {
     await dashboard.pressHandle('alpha');
     await dashboard.movePointerBy(2 * (await dashboard.columnPitch()), 0);
 
-    expect(await dashboard.shadowIsValid()).toBe(false);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(false);
     expect(await dashboard.shadowBorderStyle()).toBe('dashed');
     await dashboard.releasePointer();
   });
@@ -176,7 +176,7 @@ test.describe('L2-018 a resize that would overlap is refused', () => {
 
     await dashboard.pressHandle('alpha');
     await dashboard.movePointerBy(2 * (await dashboard.columnPitch()), 0);
-    expect(await dashboard.shadowIsValid()).toBe(false);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(false);
     await dashboard.releasePointer();
 
     expect(await dashboard.geometryOf('alpha')).toEqual(before);

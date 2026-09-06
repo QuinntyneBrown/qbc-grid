@@ -78,6 +78,7 @@ export class GridComponent {
   private readonly session = new GridPointerSession({
     measure: (kind, tile, pressX, pressY) => this.measureGesture(kind, tile, pressX, pressY),
     propose: (kind, tile, event) => this.proposeCell(kind, tile, event),
+    schedule: (write) => this.scheduler.schedule(write),
     paint: (interaction) => this.paintPreview(interaction),
     clear: () => this.clearPreview(),
     settle: (cell, tileId) => this.settleGesture(cell, tileId),
@@ -282,14 +283,13 @@ export class GridComponent {
   }
 
   /**
-   * Schedules the frame that paints the preview. The tile follows the pointer in pixels
-   * while the shadow snaps to cells, so the two writes are the whole per-frame cost
-   * whatever the tile count.
+   * Paints the preview. This runs inside the scheduled write, so it applies once a frame
+   * however many pointer events arrived. The tile follows the pointer in pixels while the
+   * shadow snaps to cells, and those two elements are the whole per-frame cost whatever
+   * the tile count.
    */
   private paintPreview(interaction: GridInteraction): void {
-    this.scheduler.schedule(() => {
-      const cache = this.session.gestureCache;
-      if (cache === null) return;
+    {
       const element = this.tileElement(interaction.tileId);
       if (element === null) return;
       this.dragged = element;
@@ -303,7 +303,7 @@ export class GridComponent {
         element.style.setProperty('--qbc-drag-width', `${target.width}px`);
         element.style.setProperty('--qbc-drag-height', `${target.height}px`);
       }
-    });
+    }
   }
 
   /** Drops everything the gesture put on the screen, including its compositor promotion. */
@@ -372,6 +372,45 @@ export class GridComponent {
       this.editable();
       // Reaching here at all means one of those changed, so an active gesture is stale.
       untracked(() => this.session.cancel());
+    });
+
+    // A container-width change is the one thing a gesture survives, because the layout and
+    // the columns are the ones it was proposed against — only the pixels beneath them
+    // differ. The grab offset is rebased with the metrics: a column width that changed
+    // under a lifted tile moved the corner the offset was measured from, and refreshing one
+    // without the other slides the tile out from under the cursor.
+    effect(() => {
+      this.widthObserver.width();
+      untracked(() => {
+        const cache = this.session.gestureCache;
+        const dragged = this.tileState().find((tile) => tile.id === this.session.tileId);
+        if (cache === null || dragged === undefined) return;
+        const metrics = this.metrics();
+        const rect = this.host.nativeElement.getBoundingClientRect();
+
+        // The offset holds its fraction of the tile, so the cursor keeps the spot it
+        // grabbed. The tile's own width is what scales, not the column pitch: a tile
+        // spanning three columns carries two gaps that do not scale with them.
+        const before = rectOf(dragged, {
+          columns: cache.columns,
+          columnWidth: cache.columnWidth,
+          rowHeight: cache.rowHeight,
+          gap: cache.gap,
+        }).width;
+        const after = rectOf(dragged, metrics).width;
+        const scale = before > 0 ? after / before : 1;
+
+        this.session.rebase({
+          gridLeft: rect.left,
+          gridTop: rect.top,
+          columnWidth: metrics.columnWidth,
+          rowHeight: metrics.rowHeight,
+          gap: metrics.gap,
+          columns: metrics.columns,
+          grabOffsetX: cache.grabOffsetX * scale,
+          grabOffsetY: cache.grabOffsetY,
+        });
+      });
     });
   }
 

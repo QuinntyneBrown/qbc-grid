@@ -28,7 +28,9 @@ export interface GridSessionHost {
   ): GridGestureCache;
   /** Derives the cell a release would take, and whether it is free. */
   propose(kind: GridInteractionKind, tile: GridTile, event: PointerEvent): GridInteraction;
-  /** Paints the preview for the frame. */
+  /** Runs a write on the next animation frame, replacing any write already waiting. */
+  schedule(write: () => void): void;
+  /** Paints the preview. Called from inside a scheduled write, never from a handler. */
   paint(interaction: GridInteraction): void;
   /** Clears everything a gesture put on the screen. */
   clear(): void;
@@ -56,6 +58,7 @@ export class GridPointerSession {
   private captured: HTMLElement | null = null;
   private detach: (() => void)[] = [];
   private cache: GridGestureCache | null = null;
+  private latest: PointerEvent | null = null;
 
   private readonly current = signal<GridInteraction | null>(null);
 
@@ -84,7 +87,11 @@ export class GridPointerSession {
    * a lifted tile moves the corner the offset was measured against.
    */
   rebase(cache: GridGestureCache): void {
-    if (this.phase === 'active') this.cache = cache;
+    if (this.phase !== 'active') return;
+    this.cache = cache;
+    // No pointer event follows a container resize, so without this the preview would keep
+    // showing the cell the old column width chose and only catch up on the next move.
+    this.host.schedule(() => this.applyFrame());
   }
 
   press(kind: GridInteractionKind, tile: GridTile, event: PointerEvent): void {
@@ -119,6 +126,16 @@ export class GridPointerSession {
     }
     if (this.phase !== 'active') return;
 
+    // The event records its sample and asks for a frame. Deriving the candidate and
+    // scanning for occupancy here would do that work once per event, which is twenty times
+    // for a frame that paints once; the frame does it against the last sample it received.
+    this.latest = event;
+    this.host.schedule(() => this.applyFrame());
+  }
+
+  private applyFrame(): void {
+    const event = this.latest;
+    if (event === null || this.tile === null || this.phase !== 'active') return;
     const interaction = this.host.propose(this.kind, this.tile, event);
     this.current.set(interaction);
     this.host.paint(interaction);
@@ -191,6 +208,7 @@ export class GridPointerSession {
       this.captured.releasePointerCapture(this.pointerId);
     }
     this.captured = null;
+    this.latest = null;
     this.phase = 'idle';
     this.tile = null;
     this.pointerId = -1;

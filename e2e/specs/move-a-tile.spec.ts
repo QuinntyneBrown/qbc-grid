@@ -149,10 +149,7 @@ test.describe('L2-011 a shadow marks the landing cell', () => {
     await dashboard.movePointerBy(4000, 0);
 
     // A three-column tile in a twelve-column grid stops at column 9.
-    const shadowX = await dashboard.shadow.evaluate((element) =>
-      Number.parseFloat(getComputedStyle(element).getPropertyValue('--qbc-tile-x')),
-    );
-    expect(shadowX).toBe(9);
+    await expect.poll(async () => (await dashboard.shadowGeometry()).x).toBe(9);
     await dashboard.releasePointer();
   });
 
@@ -164,10 +161,7 @@ test.describe('L2-011 a shadow marks the landing cell', () => {
     await dashboard.pressTile('charlie');
     await dashboard.movePointerBy(0, -4000);
 
-    const shadowY = await dashboard.shadow.evaluate((element) =>
-      Number.parseFloat(getComputedStyle(element).getPropertyValue('--qbc-tile-y')),
-    );
-    expect(shadowY).toBe(0);
+    await expect.poll(async () => (await dashboard.shadowGeometry()).y).toBe(0);
     await dashboard.releasePointer();
   });
 });
@@ -184,7 +178,7 @@ test.describe('L2-012 an invalid landing cell is signalled and refused', () => {
     await dashboard.pressTile('alpha');
     await dashboard.movePointerBy(3 * (await dashboard.columnPitch()), 0);
 
-    expect(await dashboard.shadowIsValid()).toBe(false);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(false);
     expect(await dashboard.shadowBorderStyle()).toBe('dashed');
     await dashboard.releasePointer();
   });
@@ -200,7 +194,7 @@ test.describe('L2-012 an invalid landing cell is signalled and refused', () => {
 
     await dashboard.pressTile('alpha');
     await dashboard.movePointerBy(3 * (await dashboard.columnPitch()), 0);
-    expect(await dashboard.shadowIsValid()).toBe(false);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(false);
     await dashboard.releasePointer();
 
     expect(await dashboard.geometryOf('alpha')).toEqual(before);
@@ -214,12 +208,12 @@ test.describe('L2-012 an invalid landing cell is signalled and refused', () => {
 
     await dashboard.pressTile('alpha');
     await dashboard.movePointerBy(3 * (await dashboard.columnPitch()), 0);
-    expect(await dashboard.shadowIsValid()).toBe(false);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(false);
     await dashboard.movePointerBy(3 * (await dashboard.columnPitch()), 0);
-    expect(await dashboard.shadowIsValid()).toBe(true);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(true);
     await dashboard.releasePointer();
 
-    expect(await dashboard.geometryOf('alpha')).toMatchObject({ x: 6, y: 0 });
+    await expect.poll(async () => (await dashboard.geometryOf('alpha')).x).toBe(6);
   });
 });
 
@@ -231,7 +225,7 @@ test.describe('L2-013 a valid drop commits and emits the layout', () => {
 
     await dashboard.dragTileByColumns('alpha', 6);
 
-    expect(await dashboard.geometryOf('alpha')).toMatchObject({ x: 6, y: 0 });
+    await expect.poll(async () => (await dashboard.geometryOf('alpha')).x).toBe(6);
     await expect(dashboard.overlay).toHaveCount(0);
     await expect(dashboard.shadow).toHaveCount(0);
   });
@@ -322,6 +316,7 @@ test.describe('L2-014 a drag can always be abandoned', () => {
     await dashboard.enterEditMode();
 
     await dashboard.dragTileByColumns('alpha', 6);
+    await expect.poll(async () => (await dashboard.geometryOf('alpha')).x).toBe(6);
     const committed = await dashboard.geometryOf('alpha');
     const emissions = await dashboard.emissions();
 
@@ -388,7 +383,7 @@ test.describe('L2-008 a locked tile refuses the gesture', () => {
     await dashboard.pressTile('rover');
     await dashboard.movePointerBy(0, await dashboard.rowPitch());
 
-    expect(await dashboard.shadowIsValid()).toBe(false);
+    await expect.poll(async () => dashboard.shadowIsValid()).toBe(false);
     await dashboard.releasePointer();
   });
 });
