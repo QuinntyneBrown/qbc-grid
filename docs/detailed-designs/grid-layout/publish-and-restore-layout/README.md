@@ -110,11 +110,18 @@ storage behind its service token. Every part of it below the grid lives in `src/
   is also true of several arrangements that are not empty. A typo in a fixture name is a
   defect in the specification, and it should read as one rather than as a defect in the
   grid.
-- **`layout-fixtures.ts`** — the named layouts, declared once beside the mock. Forty-two of
-  the acceptance criteria open by fixing a starting arrangement — an empty grid, a grid of
-  three tiles, a first row occupied through column 5, a tile at column 9 of twelve, sixty
-  tiles of static content, five hundred records — and each of those arrangements is a
-  fixture rather than a set-up written into a specification.
+- **`layout-fixtures.ts`** — the named layouts, declared once beside the mock. The
+  acceptance criteria open by fixing a starting arrangement — an empty grid, a grid of
+  three tiles, a first row occupied through column 5, a tile at column 9 of twelve, a
+  locked tile spanning every column, sixty tiles of static content, five hundred records —
+  and each of those arrangements is a fixture rather than a set-up written into a
+  specification.
+
+  The count of criteria that do so is left unstated because no reading of the phrase
+  recovers it: six criteria name one of these arrangements outright and a hundred and
+  fifteen open with an arrangement of some kind, so a number in between records a judgement
+  rather than a fact, and drifts the moment a criterion is added. What the sentence carries
+  is the rule, which stays true at any count.
 
   Naming them keeps the *given* independent of the behaviour under test. A specification
   that built its starting layout by clicking Add tile would depend on placement working

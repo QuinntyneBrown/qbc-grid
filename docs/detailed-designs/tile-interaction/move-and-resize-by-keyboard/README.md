@@ -6,9 +6,10 @@ An operator dashboard is a workplace, and a grid that can only be arranged with 
 excludes anyone who does not use one. Every move and every resize the pointer can perform
 is therefore available from the keyboard, on the same rules and with the same outcomes.
 
-The command set is four keys and one modifier. With an unlocked tile focused in `edit`
-mode, an arrow key moves the tile one cell in that direction, and `Shift` with an arrow
-changes the span by one column or one row. There is no separate grab-and-drop state to
+The command set is four keys and two modifiers. With an unlocked tile focused in `edit`
+mode, an arrow key moves the tile one cell in that direction, `Control` with an arrow
+moves it to the nearest position in that direction where it fits, and `Shift` with an
+arrow changes the span by one column or one row. There is no separate grab-and-drop state to
 enter and leave: each key press is a complete, committed command. A modal keyboard drag
 would need an entry key, an exit key, a cancel key, and a way to tell the operator which
 state they are in — all to reproduce what one arrow press already does.
@@ -43,6 +44,18 @@ announcement.
   vertical arrow changes `rows`. A resize candidate passes through `clampTile`, so
   `minCols`, `minRows`, `maxCols`, and the grid's column bound apply exactly as they do to a
   pointer resize.
+
+  `Control` with an arrow returns the nearest candidate in that direction that `canPlace`
+  accepts, rather than the adjacent one. The search walks cell by cell and stops at the
+  first position that holds the tile, so an unobstructed press moves one cell and lands
+  where the unmodified arrow would. Its work is bounded on every axis: horizontally by the
+  column count, upward by row zero, and downward by the lowest occupied row, below which
+  every row is free and the first candidate tested is the answer.
+
+  The command exists because one-cell steps do not reach every position a drag reaches. A
+  locked tile spanning every column divides the grid in two: no sequence of single steps
+  crosses it, shrinking does not help a tile already at its minimum, and the parity
+  `L1-010` states would then hold only for destinations with nothing in the way.
 - **`canPlace`** — the same overlap and bounds test the drag shadow uses. A candidate that
   fails it is refused.
 - **`accessibleNameOf(tile)`** — returns the tile's `label` when the host supplied one, and
@@ -119,7 +132,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, shall refuse a move that leaves the grid or overlaps another tile, and shall retain focus on the tile. |
+| `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, `Control` with an arrow shall move it to the nearest position in that direction where it fits, each shall refuse a move that leaves the grid or finds no free position, and each shall retain focus on the tile. |
 | `L2-028` | `L1-010` | With an unlocked tile focused in `edit` mode, `Shift` with a horizontal arrow shall change `cols` by one and `Shift` with a vertical arrow shall change `rows` by one, subject to the size limits and overlap rules of a pointer resize. |
 | `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it, and shall announce a run of commands once, when the tile comes to rest, and shall announce a repeated outcome as often as it occurs. |
 
