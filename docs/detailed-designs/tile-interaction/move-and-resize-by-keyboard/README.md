@@ -52,6 +52,16 @@ announcement.
 - **`announcementFor(name, cell, accepted)`** — composes the live region text: the tile
   name with its one-based column and row for a committed move, the new span for a committed
   resize, and a statement that the command was blocked for a refusal.
+- **The instruction element** — one visually hidden element in the grid, carrying the
+  sentence that names the commands, with every unlocked tile in `edit` mode pointing at it
+  through `aria-describedby`. Each tile also carries an `aria-roledescription` naming it a
+  dashboard tile, so what is focused is identified before what can be done to it.
+
+  Announcing a result is not the same as offering a command. Without the description a
+  screen-reader user reaches a tile, hears its name, and has no way to learn that the arrow
+  keys do anything at all — the keyboard path is present and undiscoverable, which for the
+  operator it exists to serve is close to absent. One shared element rather than one per
+  tile, because sixty copies of the same sentence is sixty nodes carrying no extra meaning.
 - **`GridComponent.announcement`** — signal bound into a polite `aria-live` region in the
   grid's template. Writing text into an existing region, rather than inserting one, is what
   makes the announcement reliable.
@@ -87,7 +97,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, shall refuse a move that leaves the grid or overlaps another tile, and shall retain focus on the tile. |
 | `L2-028` | `L1-010` | With an unlocked tile focused in `edit` mode, `Shift` with a horizontal arrow shall change `cols` by one and `Shift` with a vertical arrow shall change `rows` by one, subject to the size limits and overlap rules of a pointer resize. |
-| `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region. |
+| `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it. |
 
 ## Diagrams
 
