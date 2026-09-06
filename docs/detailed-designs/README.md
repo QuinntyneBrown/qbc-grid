@@ -56,6 +56,37 @@ deliverable and depends on nothing above it.
 
 ![C4 container view for qbc-grid](diagrams/c4-container.png)
 
+## The testing seam
+
+The front end is tested with Playwright and the Page Object Model: a page object owns the
+selectors and a test states intent. That division holds only where the grid publishes
+something stable for a page object to hold on to. A page object written against internal
+class names breaks at the next stylesheet change, and the acceptance criteria of 34
+requirements break with it.
+
+The grid therefore carries a small set of attributes that belong to its published surface.
+Changing one is a breaking change, as renaming an input would be.
+
+| Attribute | Sits on | Carries |
+|-----------|---------|---------|
+| `data-qbc-grid` | the grid host | `data-mode`, of `live` or `edit` |
+| `data-qbc-tile` | each tile | the tile's `id`, and `data-locked` when it is locked |
+| `data-qbc-shadow` | the shadow | `data-valid`, of `true` or `false` |
+| `data-qbc-overlay` | the overlay | its presence, which is the whole of its state |
+| `data-qbc-handle` | the resize handle | its presence |
+| `data-qbc-announcer` | the live region | the text last announced |
+
+Each one exists because a criterion asks something the rendered pixels cannot answer.
+`L2-012` asks whether the shadow is in its invalid state rather than its valid one;
+`L2-008` asks whether a tile is locked; `L2-029` asks what was announced.
+
+Geometry needs no attribute of its own. A page object reads `--qbc-tile-x`,
+`--qbc-tile-y`, `--qbc-tile-cols`, and `--qbc-tile-rows` from a tile's computed style and
+receives the cell coordinates the criteria are already written in. The alternative — 
+measuring pixel offsets and dividing back down into cells — would reimplement the grid's
+own arithmetic inside the tests that exist to check it, and would agree with the grid even
+when both were wrong.
+
 ## Deliberate exclusions
 
 `AGENTS.md` describes a .NET API, MediatR, and a `backend/` tree for this

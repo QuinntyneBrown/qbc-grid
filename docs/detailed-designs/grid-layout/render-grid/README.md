@@ -78,7 +78,30 @@ repository requires.
 `--qbc-grid-gap`, and writes each tile's geometry onto that tile's element as
 `--qbc-tile-x`, `--qbc-tile-y`, `--qbc-tile-cols`, and `--qbc-tile-rows`. Both are written
 as Angular style bindings on custom properties, which is enough for values that change
-when a layout changes. The two properties a drag moves every frame —
+when a layout changes.
+
+The split between those two groups is not cosmetic. The four tile properties carry
+unitless numbers and the three grid properties carry lengths, because `calc()` multiplies a
+number by a length and rejects a length by a length. Every rectangle follows from that one
+rule:
+
+```css
+--tile-left:   calc(var(--qbc-tile-x) * (var(--qbc-grid-column-width) + var(--qbc-grid-gap)));
+--tile-top:    calc(var(--qbc-tile-y) * (var(--qbc-grid-row-height)   + var(--qbc-grid-gap)));
+width:         calc(var(--qbc-tile-cols) * var(--qbc-grid-column-width)
+                    + (var(--qbc-tile-cols) - 1) * var(--qbc-grid-gap));
+height:        calc(var(--qbc-tile-rows) * var(--qbc-grid-row-height)
+                    + (var(--qbc-tile-rows) - 1) * var(--qbc-grid-gap));
+transform:     translate3d(calc(var(--tile-left) + var(--qbc-drag-offset-x, 0px)),
+                           calc(var(--tile-top)  + var(--qbc-drag-offset-y, 0px)), 0);
+```
+
+The two fallbacks in the last declaration are load-bearing. A resting tile has no drag
+offset set, and a `var()` on an undefined property with no fallback makes the whole
+declaration invalid at computed-value time — which would drop `transform` entirely and
+stack every tile in the grid at the origin. The failure is total rather than local, and it
+appears the moment a drag ends and the offsets are cleared, so `0px` is written as the
+fallback rather than relied upon to be present. The two properties a drag moves every frame —
 `--qbc-drag-offset-x` and `--qbc-drag-offset-y` — are the exception: they are set
 imperatively on the one element being dragged, described in
 [`hold-the-frame-budget`](../../library-delivery/hold-the-frame-budget/), so that a

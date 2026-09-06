@@ -60,6 +60,16 @@ The slice is a package shape, an entry point, and a token catalogue.
   fallback to the design system's default, so a consumer who has not loaded the token file
   still gets a legible grid rather than an unpainted one.
 
+  The fallback is the one place a literal value appears in the grid's stylesheets, and it
+  is deliberate. `L2-034` requires the grid to stay legible when a consumer has not loaded
+  the token file, which means a default has to live somewhere inside the library; the
+  repository rule against hard-coded values exists so that no consumer-visible value is
+  unreachable through a token. A fallback satisfies both: the token is always the value
+  that wins when it is defined, and the literal beside it is never the value a consumer
+  restyles. Where the token file is present, the design system's copy is authoritative and
+  the fallback is dead. A fallback that disagrees with the design system's default for the
+  same token is a defect in the library, not a second opinion.
+
   One value resists a token override. `L2-015` fixes the resize handle's hit area at no less
   than 16 px, which is an accessibility floor rather than a matter of taste, so the
   stylesheet takes the larger of that floor and `--qbc-size-handle`. A consumer may enlarge
