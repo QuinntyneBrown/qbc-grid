@@ -22,9 +22,12 @@ home for any drop, at the cost of moving tiles the operator did not touch and pr
 results nobody can predict from the screen. Refusal keeps the rule small enough to hold in
 the head: a tile lands where it fits.
 
-A drag is also always escapable. `Escape`, a browser-issued `pointercancel`, and the
-window losing focus each abandon the gesture and restore the tile. An abandoned drag
-leaves nothing behind, so the same tile can be dragged again immediately.
+A drag is also always escapable, and every way out clears the same three things. `Escape`, a browser-issued `pointercancel`, and the
+window losing focus each abandon the gesture and restore the tile, and each removes the
+shadow along with the overlay. A shadow outliving its gesture would sit on the dashboard as a
+rectangle nothing is moving, and on a refused drop it would sit there in the danger colour,
+marking a move that never happened. An abandoned drag leaves nothing behind, so the same tile
+can be dragged again immediately.
 
 ## Description
 
@@ -134,7 +137,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | `L2-011` | `L1-004` | While a drag is in progress the grid shall draw a shadow at the cell nearest the dragged tile top-left corner, with `x` clamped to `[0, columns - cols]` and `y` clamped to at least 0. |
 | `L2-012` | `L1-004` | The grid shall render the shadow in its invalid state when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |
 | `L2-013` | `L1-004` | The grid shall adopt the shadow geometry when the pointer is released on a valid target, hide the shadow and the overlay, release pointer capture, and emit the complete layout exactly once when the adopted geometry differs from the geometry the tile held. |
-| `L2-014` | `L1-004` | The grid shall revert a drag and release pointer capture on `Escape`, on `pointercancel`, and when the window loses focus. |
+| `L2-014` | `L1-004` | The grid shall revert a drag and release pointer capture on `Escape`, on `pointercancel`, and when the window loses focus, and shall remove the shadow and the overlay on each of them. |
 
 ## Diagrams
 
