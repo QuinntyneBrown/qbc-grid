@@ -35,6 +35,8 @@ dom -> grid : pointerdown on the handle
 grid -> session : start(resize, tile, event, metrics)
 session -> session : Record the origin cell and hold x and y fixed per L2-015
 session -> dom : setPointerCapture and show the overlay per L2-019
+session -> dom : Suppress selection and cancel dragstart for the length of the session
+note over session, dom : A handle dragged across the tile's own text would otherwise highlight it
 loop for each pointermove
   grid -> session : track(event)
   session -> spanat : Snap the dragged corner to a whole-cell span per L2-016

@@ -203,7 +203,10 @@ that are not the grid.
 
 ### Behaviour — install the library and restyle it with tokens
 
-A consumer installs the package against their own Angular, and redefines two tokens to
-change the shadow's colours without touching the library.
+A consumer installs the package against their own Angular and redefines two tokens to change
+the shadow's colours. The sequence then runs the two comparisons the other criteria rest on:
+a render with every token overridden, where a hard-coded literal is the value that fails to
+move, and a render with no token file at all, where a fallback drifted from its token is the
+value that fails to match.
 
 ![Sequence diagram for installing and restyling the grid](diagrams/sequence-consume-and-restyle.png)

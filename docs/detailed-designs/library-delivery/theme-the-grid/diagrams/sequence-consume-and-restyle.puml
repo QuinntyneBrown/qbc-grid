@@ -49,4 +49,19 @@ styles -> tokens : Read the overridden values, cascaded from the host
 tokens --> styles : The application colours
 styles -> dom : Paint the shadow in the application colours
 dom --> operator : Present the restyled shadow, with no change to the library per L2-034
+
+dev -> app : Open the route carrying the token file and the generated override sheet
+app -> dom : Load both stylesheets before the first paint
+operator -> dom : Drag a tile
+styles -> tokens : Resolve every token the grid paints
+tokens --> styles : The overriding values, each distinct from its default by construction
+styles -> dom : Paint with the host's values, no library default surviving per L2-034
+note over styles, dom : A hard-coded literal is precisely the value that would fail to move here
+
+dev -> app : Open the route carrying no token file
+app -> dom : Load the grid with its fallbacks alone
+operator -> dom : Drag a tile
+styles -> styles : Resolve each var() to the fallback beside it
+styles -> dom : Paint, and the result matches the token-file render per L2-034
+note over styles, dom : A fallback drifted from its token differs here, and in no other run
 @enduml
