@@ -87,9 +87,25 @@ duration of a gesture rather than permanently. Dragging across a tile that holds
 selects that text, painting a highlight through the whole drag; and a tile holding an image
 or a link starts the browser's native drag on the same press. So the grid sets
 `user-select: none` on its host and cancels `dragstart` while a session is live, keyed off
-the state that already shows the overlay. Suppressing either one permanently would take
-selection away from projected content that has every right to it — a tile holding a table
-of limits is there to be read and copied.
+the state that already shows the overlay.
+
+Restoring both when the gesture ends is not the same as leaving projected content
+selectable, and the difference is worth stating plainly rather than assuming. Selecting
+text is a press and a drag; in `edit` mode that press lands on the tile surface, crosses
+the same 3 px, and starts another drag. A tile surface in `edit` mode is a drag surface,
+and no ordering of `user-select` changes that.
+
+So ownership is decided by where the press originates. `pointerdown` whose target is an
+interactive or editable descendant of the tile — a control, a field, an editable region, a
+link — belongs to that descendant: no session starts, nothing is suppressed, and the
+descendant behaves as it would outside a grid. Every other press on the tile surface
+belongs to the grid. A tile holding a table of limits is read and copied in `live` mode,
+which is the mode a dashboard spends its time in, and a widget that needs selection while
+the grid is editable owns its own input by being the sort of element this rule excludes.
+
+The keyboard is divided on the same line. `onKeyDown` returns unless the tile element
+itself holds focus, so an arrow inside a projected field moves the caret and leaves the
+tile where it is.
 
 Pointer Events are used because they are one API for the mouse across every target
 browser, not because the grid reaches for the touch and pen inputs they also carry. The
@@ -135,7 +151,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-009` | `L1-004` | The grid shall begin a drag only after the pointer has travelled 3 px from the press point, shall not suppress interaction with projected content below that threshold, and shall suppress text selection and the browser's native drag for the duration of a gesture and no longer. |
+| `L2-009` | `L1-004` | The grid shall begin a drag only after the pointer has travelled 3 px from the press point, shall ignore a press that originates on an interactive or editable descendant of a tile, shall not suppress interaction with projected content below that threshold, and shall suppress text selection and the browser's native drag for the duration of a gesture and no longer. |
 | `L2-010` | `L1-004` | While a drag is in progress the grid shall translate the dragged tile with the pointer in pixels and shall paint it above every other tile with the drag elevation, and shall hold that elevation and its compositor promotion for the duration of the gesture and no longer. |
 | `L2-011` | `L1-004` | While a drag is in progress the grid shall draw a shadow at the cell nearest the dragged tile top-left corner, with `x` clamped to `[0, columns - cols]` and `y` clamped to at least 0. |
 | `L2-012` | `L1-004` | The grid shall render the shadow in an invalid state that differs from the valid one in more than colour when the target geometry overlaps an occupied cell, and shall revert the tile when the pointer is released on an invalid target. |

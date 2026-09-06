@@ -35,9 +35,12 @@ announcement.
 
 - **`GridComponent.onKeyDown(tile, event)`** — bound on each tile. It returns immediately
   unless `isInteractive(tile)` is true, so a locked tile and `live` mode are both handled
-  by the predicate already described in [`lock-a-tile`](../lock-a-tile/). It calls
-  `preventDefault` only for a key it consumes, leaving `Tab` and every other key to the
-  browser.
+  by the predicate already described in [`lock-a-tile`](../lock-a-tile/). It returns again
+  unless the event's target is the tile element itself, so a key pressed inside projected
+  content reaches the control the operator is using rather than moving the tile around it.
+  An arrow in a field moves the caret, an arrow in a slider changes its value, and the tile
+  stays where it is. It calls `preventDefault` only for a key it consumes, leaving `Tab`
+  and every other key to the browser.
 - **`gridKeyboardCandidate(event, tile, columns)`** — pure function mapping a key event to a
   candidate `GridCell`, or `null` for a key the grid does not consume. An unmodified arrow
   shifts `x` or `y` by one; `Shift` with a horizontal arrow changes `cols` and with a
@@ -132,7 +135,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, `Control` with an arrow shall move it to the nearest position in that direction where it fits, each shall refuse a move that leaves the grid or finds no free position, and each shall retain focus on the tile. |
+| `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, `Control` with an arrow shall move it to the nearest position in that direction where it fits, each shall refuse a move that leaves the grid or finds no free position, each shall retain focus on the tile, and the grid shall consume a key only while the tile surface itself holds focus. |
 | `L2-028` | `L1-010` | With an unlocked tile focused in `edit` mode, `Shift` with a horizontal arrow shall change `cols` by one and `Shift` with a vertical arrow shall change `rows` by one, subject to the size limits and overlap rules of a pointer resize. |
 | `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it, and shall announce a run of commands once, when the tile comes to rest, and shall announce a repeated outcome as often as it occurs. |
 

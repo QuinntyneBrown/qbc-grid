@@ -71,7 +71,7 @@ storage behind its service token. Every part of it below the grid lives in `src/
 
   It also carries the record of what the grid has emitted, described in
   [the testing seam](../../README.md#observing-what-the-dom-does-not-show): a count and the
-  last payload, rendered into the page. Twenty-seven acceptance criteria turn on emission,
+  last payload, rendered into the page. Twenty-eight acceptance criteria turn on emission,
   and an Angular output leaves nothing in the DOM for a page object to read. The record
   lives here rather than in the library because a published grid has no business carrying
   instrumentation for its own tests, and because the saved layout cannot substitute — the

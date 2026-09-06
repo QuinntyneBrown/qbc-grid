@@ -111,7 +111,7 @@ specification from restating them and keeps a swallowed error from passing quiet
 
 ### Observing what the DOM does not show
 
-Twenty-seven of the acceptance criteria in `docs/specs/L2.md` are about emission: nineteen
+Twenty-eight of the acceptance criteria in `docs/specs/L2.md` are about emission: twenty
 assert that nothing was emitted, and eight that a layout was emitted exactly once. An
 Angular output leaves no trace in the DOM, so none of the attributes above can answer any
 of them, and a quarter of the specification would otherwise be unassertable.
