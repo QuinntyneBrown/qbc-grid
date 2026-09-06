@@ -594,7 +594,7 @@ export class DashboardPageObject {
         for (const mutation of mutations) {
           const element = mutation.target as HTMLElement;
           const id = element.getAttribute('data-qbc-tile');
-          if (id !== null) record.push({ frame, id });
+          if (id !== null) record.push({ frame, id, attribute: mutation.attributeName ?? '' });
         }
       });
       for (const tile of document.querySelectorAll('[data-qbc-tile]')) {
@@ -604,12 +604,20 @@ export class DashboardPageObject {
     });
   }
 
-  async tileMutationsPerFrame(): Promise<{ frame: number; writes: number }[]> {
+  async tileMutationsPerFrame(): Promise<{ frame: number; writes: number; attributes: string[] }[]> {
     return this.page.evaluate(() => {
-      const record = (window as unknown as { __qbcWrites: { frame: number }[] }).__qbcWrites;
-      const byFrame = new Map<number, number>();
-      for (const entry of record) byFrame.set(entry.frame, (byFrame.get(entry.frame) ?? 0) + 1);
-      return [...byFrame.entries()].map(([frame, writes]) => ({ frame, writes }));
+      const record = (window as unknown as {
+        __qbcWrites: { frame: number; attribute: string }[];
+      }).__qbcWrites;
+      const byFrame = new Map<number, string[]>();
+      for (const entry of record) {
+        byFrame.set(entry.frame, [...(byFrame.get(entry.frame) ?? []), entry.attribute]);
+      }
+      return [...byFrame.entries()].map(([frame, attributes]) => ({
+        frame,
+        writes: attributes.length,
+        attributes,
+      }));
     });
   }
 
@@ -741,9 +749,26 @@ export class DashboardPageObject {
     );
   }
 
+  /** The level a tile paints at, which is what puts a dragged one above the rest. */
+  async stackingLevelOf(id: string): Promise<number> {
+    return this.tile(id).evaluate((element) => Number(getComputedStyle(element).zIndex) || 0);
+  }
+
+  async elevationOf(id: string): Promise<string> {
+    return this.tile(id).evaluate((element) => getComputedStyle(element).boxShadow);
+  }
+
+  /** How many tiles still carry the compositor promotion a gesture takes. */
+  async promotedTileCount(): Promise<number> {
+    return this.tiles.evaluateAll(
+      (tiles) =>
+        tiles.filter((tile) => getComputedStyle(tile).willChange.includes('transform')).length,
+    );
+  }
+
   async draggedTileHasOffset(id: string): Promise<boolean> {
     return this.tile(id).evaluate((element) => {
-      const offset = element.style.getPropertyValue('--qbc-drag-offset-x');
+      const offset = element.style.getPropertyValue('--qbc-drag-offset');
       return offset !== '' || element.classList.contains('qbc-grid__tile--dragging');
     });
   }

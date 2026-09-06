@@ -30,7 +30,9 @@ test.describe('L2-031 interaction stays within frame budget', () => {
     await dashboard.dispatchPointerMovesInOneFrame('tile-0', 20);
 
     const writes = await dashboard.tileMutationsPerFrame();
-    expect(Math.max(...writes.map((frame) => frame.writes))).toBeLessThanOrEqual(1);
+    // Twenty events paint in one frame, and that frame writes the style attribute once.
+    expect(writes.length).toBeLessThanOrEqual(1);
+    expect(writes.flatMap((frame) => frame.attributes)).toEqual(['style']);
     await dashboard.releasePointer();
   });
 

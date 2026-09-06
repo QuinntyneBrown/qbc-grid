@@ -66,16 +66,19 @@
     )
   );
 
+  transform: translate3d(var(--tile-left), var(--tile-top), 0);
+
   /*
-   * The two fallbacks are load-bearing. A resting tile has no drag offset set, and a var()
-   * on an undefined property with no fallback invalidates the whole declaration at
-   * computed-value time, which would drop the transform and stack every tile at the origin.
+   * The lift is one property carrying both axes, so a frame that moves the tile mutates
+   * the style attribute once rather than twice. `translate` composes with `transform`, and
+   * two translations compose in either order.
+   *
+   * The fallback is load-bearing. A resting tile has no offset set, and a var() on an
+   * undefined property with no fallback invalidates the whole declaration at
+   * computed-value time — which here would drop the lift, and in the transform above would
+   * have stacked every tile at the origin.
    */
-  transform: translate3d(
-    calc(var(--tile-left) + var(--qbc-drag-offset-x, 0px)),
-    calc(var(--tile-top) + var(--qbc-drag-offset-y, 0px)),
-    0
-  );
+  translate: var(--qbc-drag-offset, 0 0);
 
   background: var(--qbc-color-surface, #14181d);
   border: var(--qbc-border-width-hairline, 1px) solid var(--qbc-color-border, #2b333c);

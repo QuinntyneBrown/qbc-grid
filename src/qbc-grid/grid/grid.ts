@@ -400,18 +400,22 @@ export class GridComponent {
     };
     const origin = { x: tile.x, y: tile.y, cols: tile.cols, rows: tile.rows };
 
+    const box = rectOf(origin, metrics);
+
     let cell: GridCell;
+    let lift: GridInteraction['lift'];
     if (kind === 'move') {
       const left = event.clientX - cache.gridLeft - cache.grabOffsetX;
       const top = event.clientY - cache.gridTop - cache.grabOffsetY;
       cell = cellAt(left, top, origin, metrics);
+      lift = { x: left - box.left, y: top - box.top, width: box.width, height: box.height };
     } else {
-      const box = rectOf(origin, metrics);
       const width = event.clientX - cache.gridLeft - cache.grabOffsetX - box.left;
       const height = event.clientY - cache.gridTop - cache.grabOffsetY - box.top;
       // Clamping never invalidates the shadow: a span held at a limit is one the operator
       // can commit, where a span reaching over a neighbour is not.
       cell = clampSpan(tile, spanAt(width, height, origin, metrics), cache.columns);
+      lift = { x: 0, y: 0, width: Math.max(1, width), height: Math.max(1, height) };
     }
 
     return {
@@ -420,6 +424,7 @@ export class GridComponent {
       origin,
       pointerId: event.pointerId,
       shadow: { cell, valid: canPlace(this.tileState(), cell, cache.columns, tile.id) },
+      lift,
     };
   }
 
@@ -433,16 +438,26 @@ export class GridComponent {
     {
       const element = this.tileElement(interaction.tileId);
       if (element === null) return;
-      this.dragged = element;
-      element.classList.add('qbc-grid__tile--dragging');
-      const origin = rectOf(interaction.origin, this.metrics());
-      const target = rectOf(interaction.shadow.cell, this.metrics());
+
+      // The elevation and the compositor promotion ride on one class, taken once when the
+      // gesture starts and dropped once when it ends. Adding it every frame would cost a
+      // second attribute write per frame: `classList.add` rewrites the attribute whether or
+      // not the token was already there.
+      if (this.dragged !== element) {
+        this.dragged = element;
+        element.classList.add('qbc-grid__tile--dragging');
+      }
+      // The tile follows the pointer in pixels; the shadow snaps. Writing the snapped
+      // geometry here as well would make the lift stutter and say nothing the shadow was
+      // not already saying.
       if (interaction.kind === 'move') {
-        element.style.setProperty('--qbc-drag-offset-x', `${target.left - origin.left}px`);
-        element.style.setProperty('--qbc-drag-offset-y', `${target.top - origin.top}px`);
+        element.style.setProperty(
+          '--qbc-drag-offset',
+          `${interaction.lift.x}px ${interaction.lift.y}px`,
+        );
       } else {
-        element.style.setProperty('--qbc-drag-width', `${target.width}px`);
-        element.style.setProperty('--qbc-drag-height', `${target.height}px`);
+        element.style.setProperty('--qbc-drag-width', `${interaction.lift.width}px`);
+        element.style.setProperty('--qbc-drag-height', `${interaction.lift.height}px`);
       }
     }
   }
@@ -460,8 +475,7 @@ export class GridComponent {
     setTimeout(() => element.classList.remove('qbc-grid__tile--settling'), SETTLE_MS);
 
     element.classList.remove('qbc-grid__tile--dragging');
-    element.style.removeProperty('--qbc-drag-offset-x');
-    element.style.removeProperty('--qbc-drag-offset-y');
+    element.style.removeProperty('--qbc-drag-offset');
     element.style.removeProperty('--qbc-drag-width');
     element.style.removeProperty('--qbc-drag-height');
   }

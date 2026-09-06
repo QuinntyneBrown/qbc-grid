@@ -8,6 +8,7 @@ const PORT = 4381;
  */
 export default defineConfig({
   testDir: './e2e/specs',
+  globalSetup: './e2e/warm-up.ts',
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,

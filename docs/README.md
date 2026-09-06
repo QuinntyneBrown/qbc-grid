@@ -3,7 +3,7 @@
 `qbc-grid` is an Angular component library that arranges dashboard tiles on a
 cell-based grid and lets an operator move and resize them with a pointer or the
 keyboard. It targets Open MCT style operator dashboards on large desktop screens.
-No code exists yet; everything here is specification and design.
+The specification and design here are implemented, and the acceptance suite drives them.
 
 ## Where things are
 
@@ -20,9 +20,8 @@ Start at [`detailed-designs/README.md`](detailed-designs/README.md). It carries
 the shared C4 context and container views, the vocabulary every feature uses, and
 the testing seam.
 
-Code has not been written yet. When it is, it goes where
-[`angular/components`](https://github.com/angular/components) puts its own — every
-package and application a sibling under `src/`:
+The code sits where [`angular/components`](https://github.com/angular/components) puts its
+own — every package and application a sibling under `src/`:
 
 | Path | Holds |
 |------|-------|
@@ -40,7 +39,13 @@ token lives in the application that provides it; the library injects nothing.
 ```bash
 python docs/tools/prove_gapcheck.py   # 36 rules fire, 0 false positives
 python docs/tools/gapcheck.py         # 0 gaps
-python <skill>/scripts/render_puml.py docs/detailed-designs   # 51/51
+node tools/render-diagrams.mjs        # 51/51
+
+npm run lint
+npm test                              # the library's pure functions, and the token catalogue
+npm run build
+npx playwright test                   # the acceptance suite, against src/e2e-app
+npm run verify:consumer               # the packed library in a bare application
 ```
 
 Run the prover before trusting the checker. [`tools/README.md`](tools/README.md)
