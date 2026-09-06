@@ -1,0 +1,43 @@
+@startuml
+title UML sequence behaviour - Unlock a tile
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - qbc-grid application" #E0F2FE
+  participant "DashboardPage" as page
+end box
+box "Frontend - domain library" #D1FADF
+  participant "DashboardComponent" as dashboard
+end box
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "grid.css" as styles
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> page : Toggle the lock on one tile
+page -> dashboard : Set locked to false for that id
+dashboard -> grid : Bind the updated layout
+grid -> grid : Recompute isInteractive for that tile only
+grid -> dom : Set tabindex 0 on the tile per L2-008
+grid -> dom : Clear the data-locked attribute
+styles -> dom : Reveal the resize handle and the move cursor
+dom --> actor : Present the tile as draggable, with no reload
+actor -> dom : Press and drag the tile
+dom -> grid : pointerdown, then pointermove past the threshold
+grid --> actor : Begin the drag normally
+@enduml

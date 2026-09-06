@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour - Refuse a gesture on a locked tile
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Dashboard operator" as actor
+box "Frontend - components library" #ECFDF3
+  participant "GridComponent" as grid
+  participant "GridPointerSession" as session
+  participant "canPlace" as canplace
+end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM and compositor" as dom
+end box
+
+actor -> dom : Press the pointer on a locked tile in edit mode
+dom -> grid : pointerdown
+grid -> grid : isInteractive(tile) is false per L2-008
+grid --> dom : Take no action, start no session, show no shadow
+actor -> dom : Drag 200 px
+dom -> grid : pointermove with no session in flight
+grid --> dom : Ignore the event
+note over grid, session : GridPointerSession is never started, so there is nothing to cancel
+
+actor -> dom : Drag an unlocked tile over the locked tile
+dom -> grid : pointermove within an active session
+grid -> session : Update the candidate cell
+session -> canplace : Test the candidate against every other tile
+canplace --> session : Occupied, because the locked tile holds those cells per L2-008
+session -> dom : Render the shadow in its invalid state
+actor -> dom : Release the pointer
+dom -> grid : pointerup
+grid -> grid : Revert the dragged tile and emit nothing
+grid --> actor : Present the unchanged arrangement
+@enduml
