@@ -58,7 +58,17 @@ type, as the repository requires.
   and `gap`. It is recomputed when the container width changes and at no other time.
 - **`coerceGridOptions`** — pure function applying `L2-004`. It floors `columns` to at
   least 1, raises `rowHeight` to at least 1, raises `gap` to at least 0, and substitutes
-  the documented default for any non-finite value.
+  the documented default for any non-finite value: 12 columns, a row height of 60, and a
+  gap of 8.
+
+  Those three coercions are each sound and together leave one case open, because column
+  width depends on the container as well as the configuration. Twelve columns and a gap of
+  100 are both inside their ranges, and in a 1024px container they ask for 1100px of
+  gutters and return a column width of about -6.33px. The gap the grid renders with is
+  therefore the configured gap reduced as far as needed to leave each column at least one
+  pixel, which changes nothing in an ordinary configuration and keeps a hostile one
+  renderable. A container of zero width falls out of the same arithmetic with no rule of
+  its own: every length is zero until the width observer reports a measurable container.
 - **`rectOf`** — pure function converting a `GridCell` and a `GridMetrics` into the pixel
   `Rectangle` the tile occupies.
 - **`GridComponent.orderedTiles`** — computed signal sorting `tiles` by `y`, then `x`,
@@ -148,10 +158,10 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-001` | `L1-001` | The grid shall render `columns` equal-width columns that fill the host container content width, deriving column width as `(containerWidth - gap * (columns - 1)) / columns`. |
+| `L2-001` | `L1-001` | The grid shall render `columns` equal-width columns that fill the host container content width, deriving column width as `(containerWidth - effectiveGap * (columns - 1)) / columns`, where the effective gap is the configured gap reduced as far as needed to hold the column width above zero. |
 | `L2-002` | `L1-001` | The grid shall place a tile with geometry `{ x, y, cols, rows }` at column `x` and row `y`, spanning `cols` columns and `rows` rows, separated from adjacent tiles by `gap` pixels on both axes. |
 | `L2-003` | `L1-001` | The grid shall size its host to the lowest occupied row and shall impose no maximum row. |
-| `L2-004` | `L1-001` | The grid shall coerce `columns` to `max(1, floor(columns))`, `rowHeight` to `max(1, rowHeight)`, and `gap` to `max(0, gap)`, and shall fall back to the documented default for a non-finite value. |
+| `L2-004` | `L1-001` | The grid shall coerce `columns` to `max(1, floor(columns))`, `rowHeight` to `max(1, rowHeight)`, and `gap` to `max(0, gap)`, shall fall back to the documented defaults of 12 columns, a row height of 60, and a gap of 8 for a non-finite value, and shall reduce the effective gap as far as needed to hold the column width above zero. |
 
 ## Diagrams
 

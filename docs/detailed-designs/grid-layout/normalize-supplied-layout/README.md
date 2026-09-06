@@ -49,9 +49,23 @@ ones.
 - **`overlaps`** — rectangle intersection on two `GridCell` values, the single collision
   test used by repair, by the drag shadow, and by the keyboard commands.
 
-The separation stage is bounded: a record can be pushed at most as far as one row below
-the lowest occupied row, so a layout of 500 records completes rather than searching
-without limit.
+The separation stage is bounded twice over, and the first bound is not enough on its own.
+A record can be pushed at most as far as one row below the lowest occupied row, which
+bounds the rows it may visit; a single record declaring a billion of them makes that bound
+worthless, because the rows to visit are counted in the coordinates rather than in the
+records. So the search skips instead of stepping: a candidate row intersecting an occupant
+cannot fit at any row before that occupant ends, so the search resumes at the occupant's
+bottom row and tests nothing in between. The first fit is the same one; the work follows
+the number of records.
+
+Coordinates are clamped into the rows the grid can represent, with `maxRow` of 1048576.
+Two things fail above it, and neither is a matter of taste. Integer arithmetic stops
+advancing — at `2 ** 53` the expression `y + 1` equals `y`, so a loop looking for the next
+free row runs forever without moving — and no target browser positions an element that far
+down, so a row surviving the arithmetic would still not paint. The bound repairs what a
+stored record claims and says nothing about how far a grid may grow: `L2-003` keeps its
+promise that an operator meets no ceiling, because a million rows is past any dashboard an
+operator builds a cell at a time.
 
 `GridComponent` runs `normalizeLayout` on every change of the `layout` input, as the source
 computation of the `tiles` linked signal described in [`render-grid`](../render-grid/).
@@ -82,7 +96,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-025` | `L1-009` | The grid shall normalize every supplied layout deterministically by dropping records without an id and records with a duplicate id, coercing numbers, clamping spans and coordinates into range, and moving a still-overlapping record down to the first row where it fits. |
+| `L2-025` | `L1-009` | The grid shall normalize every supplied layout deterministically by dropping records without an id and records with a duplicate id, coercing numbers, clamping spans and coordinates into range and into the rows it can represent, and moving a still-overlapping record down to the first row where it fits, bounding its search by the records present rather than by the coordinates they carry. |
 | `L2-026` | `L1-009` | The grid shall emit the repaired layout exactly once when normalization changes a supplied layout, and shall emit nothing when it does not. |
 
 ## Diagrams

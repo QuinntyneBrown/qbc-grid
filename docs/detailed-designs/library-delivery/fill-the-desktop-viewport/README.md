@@ -48,7 +48,7 @@ Width reaches the grid through one observer and leaves it as one custom property
 Tile records are untouched by a resize. `GridComponent.tiles` does not change, `commit` is
 not called, and `layoutChange` does not fire.
 
-Four criteria state a container width and expect a column width to follow from it. The
+Six criteria state a container width and expect a column width to follow from it. The
 demonstration page therefore gives the grid the full width of the viewport, with no padding,
 no margin, and no chrome beside it, so a Playwright viewport set to the width a criterion
 names gives the grid a container of exactly that width, and the criterion's arithmetic is the

@@ -57,7 +57,12 @@ it in `src/qbc-grid/grid/`.
 - **`canPlace`** — pure function reporting whether a candidate `GridCell` sits inside the
   grid and overlaps none of the supplied tiles. It is the single test used by placement,
   by the drag shadow, and by the keyboard commands, so all three agree by construction.
-- **`findFreeCell`** — pure function performing the row-major scan. It calls `canPlace`
+- **`findFreeCell`** — pure function performing the row-major scan. It advances past a
+  blocker rather than through it: a candidate intersecting an occupant cannot fit at any
+  row before that occupant ends, so the scan resumes at that occupant's bottom row. The
+  first fit is unchanged and the work follows the records rather than the coordinates they
+  carry, which is what keeps a tile declaring a billion rows from costing a billion tests.
+  It calls `canPlace`
   for each candidate and terminates at the first row below the lowest occupied row,
   which bounds the search.
 
@@ -79,7 +84,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-020` | `L1-007` | `addTile` shall insert a tile at the requested geometry after normalization, shall place it at the first free position when the requested cells are occupied, and shall reject an id that is already present. |
-| `L2-021` | `L1-007` | `addTile` without `x` and `y` shall scan row-major from `(0, 0)` for the first position where the span fits, and shall otherwise place the tile at column 0 on the first row below the lowest occupied row. |
+| `L2-021` | `L1-007` | `addTile` without `x` and `y` shall scan row-major from `(0, 0)` for the first position where the span fits, shall otherwise place the tile at column 0 on the first row below the lowest occupied row, and shall bound its search by the records present rather than by the coordinates they carry. |
 | `L2-022` | `L1-007` | `removeTile` shall remove the tile with the given id, emit the layout, leave every other geometry unchanged, and treat an unknown id as a no-op, and shall place focus on a neighbouring tile when the removed tile held it. |
 
 ## Diagrams

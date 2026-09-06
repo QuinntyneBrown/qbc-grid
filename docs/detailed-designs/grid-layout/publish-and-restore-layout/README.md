@@ -62,16 +62,18 @@ storage behind its service token. Every part of it below the grid lives in `src/
   the page converts and does nothing else — no clamping, no guarding, no default. `Number`
   is the right conversion precisely because it keeps what the criteria depend on: `7.6` stays
   fractional, `-4` stays negative, and anything unparseable becomes `NaN` rather than
-  something tidier. Five criteria fix
-  those values and three of them fix values that are wrong on purpose — `columns` of 0,
-  `columns` of 7.6, `gap` of -4 with `rowHeight` of `NaN` — to watch the grid coerce them.
+  something tidier. Seven criteria fix
+  those values and five of them fix values that are wrong on purpose — `columns` of 0,
+  `columns` of 7.6, `gap` of -4 with `rowHeight` of `NaN`, `columns` of `NaN` with `gap` of
+  `Infinity`, and a `gap` of 100 that leaves a 1024px container nothing to divide — to watch
+  the grid coerce them.
   A page that repaired a bad value before the grid saw it would leave those criteria passing
   against the page's own arithmetic, testing the scaffolding and reporting on the library.
   Passing the raw value through is what keeps the coercion under test the grid's.
 
   It also carries the record of what the grid has emitted, described in
   [the testing seam](../../README.md#observing-what-the-dom-does-not-show): a count and the
-  last payload, rendered into the page. Twenty-eight acceptance criteria turn on emission,
+  last payload, rendered into the page. Twenty-nine acceptance criteria turn on emission,
   and an Angular output leaves nothing in the DOM for a page object to read. The record
   lives here rather than in the library because a published grid has no business carrying
   instrumentation for its own tests, and because the saved layout cannot substitute — the
