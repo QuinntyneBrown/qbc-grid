@@ -73,6 +73,12 @@ repository requires.
   survive as [`project-tile-content`](../../library-delivery/project-tile-content/)
   requires.
 
+  The fixture that proves this supplies its tiles in an order that is not their row-major
+  order, and the criterion says so. A fixture listing them in reading order would be
+  satisfied by a grid that never sorted at all, which is the arrangement `orderedTiles` was
+  introduced to stop relying on — the supplied layout carries no guarantee about its order,
+  so a test that quietly assumes one is testing the fixture.
+
 `GridComponent` writes the metrics onto its host element as the custom properties
 `--qbc-grid-columns`, `--qbc-grid-column-width`, `--qbc-grid-row-height`, and
 `--qbc-grid-gap`, and writes each tile's geometry onto that tile's element as

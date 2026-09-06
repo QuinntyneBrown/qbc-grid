@@ -38,7 +38,8 @@ Mode is a single input on `GridComponent`, and everything else derives from it.
   and `-1` otherwise. The template iterates `GridComponent.orderedTiles`, which sorts by
   `y`, then `x`, then `id`, so document order already matches reading order and the tab
   order follows it without a `tabindex` above zero. The supplied layout carries no such
-  guarantee, which is why the sort exists rather than being assumed.
+  guarantee, which is why the sort exists rather than being assumed, and why `L2-006` fixes a
+  supplied order that differs from the row-major one rather than leaving the two to coincide.
 - **The demonstration page's controls** — withheld in `live` mode. The grid withdraws its
   own tiles from the tab order, and reaches no further; the add, remove, and lock controls
   belong to projected content and would stay tabbable on an inert dashboard if the page kept
