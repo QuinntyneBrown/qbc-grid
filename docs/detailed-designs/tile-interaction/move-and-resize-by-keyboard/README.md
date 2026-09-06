@@ -65,6 +65,15 @@ announcement.
 - **`GridComponent.announcement`** — signal bound into a polite `aria-live` region in the
   grid's template. Writing text into an existing region, rather than inserting one, is what
   makes the announcement reliable.
+
+  It is written once a run of commands settles, on the same window the overlay uses, and not
+  once per command. A held arrow key commits at the keyboard's repeat rate, and a polite
+  region queues rather than interrupts, so announcing each step would read a backlog of
+  positions the tile passed through minutes after it stopped at the last of them. The
+  operator this feature exists for would be listening to history. The saves coalesce and the
+  overlay coalesces for the same burst; the announcement is the third thing riding that
+  window, and the one where the cost of missing it falls on somebody who has no other way to
+  know where the tile ended up.
 - **`GridComponent.settling`** — the window during which the overlay stays visible after a
   keyboard command, lasting `--qbc-duration-settle`, the same token the revert animation
   uses. A keyboard command has no gesture duration of its own, so without the window
@@ -97,7 +106,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, shall refuse a move that leaves the grid or overlaps another tile, and shall retain focus on the tile. |
 | `L2-028` | `L1-010` | With an unlocked tile focused in `edit` mode, `Shift` with a horizontal arrow shall change `cols` by one and `Shift` with a vertical arrow shall change `rows` by one, subject to the size limits and overlap rules of a pointer resize. |
-| `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it. |
+| `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it, and shall announce a run of commands once, when the tile comes to rest. |
 
 ## Diagrams
 
