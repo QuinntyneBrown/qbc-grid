@@ -38,7 +38,7 @@ alt the geometry is unchanged
   grid -> grid : Emit nothing, because a drop on the origin cells is not a change
   grid --> actor : Present the arrangement as it already stood
 else the geometry changed
-  grid -> grid : Freeze one record per tile per L2-023
+  grid -> grid : Copy one detached record per tile, with its label and size limits, per L2-023
   grid --> dashboard : layoutChange with id, x, y, cols, rows, locked
   dashboard -> dashboard : Coalesce, and wait for the commits to settle
   note over dashboard : A held arrow key commits at the keyboard's repeat rate; one write follows the burst

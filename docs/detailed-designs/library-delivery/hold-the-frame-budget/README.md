@@ -66,6 +66,20 @@ The budget is held by one small class and one cached record, used by every gestu
   Every other change a host can make during a gesture cancels it rather than refreshing it,
   as [`switch-grid-mode`](../../tile-interaction/switch-grid-mode/) describes. A width
   change is the one case where the layout the gesture was proposed against still stands.
+The frame does the work, and the event only records the sample. A handler that derives a
+candidate and scans for occupancy before scheduling has already done that work twenty times
+in a frame that paints once; batching the write alone leaves nineteen scans and nineteen
+discarded closures behind it. So a pointer event stores its sample and requests a frame,
+and the scheduled callback derives the candidate, tests it, and writes — once, against the
+last sample the frame received.
+
+Where the listener is registered matters as much under zoneless change detection as the
+scan does. There is no zone to step outside of, and a bound template listener notifies the
+scheduler on every event whether or not the handler changes anything. The high-frequency
+listeners are therefore registered directly on the tile and removed with the gesture, and
+the signals a template reads change when the gesture's state changes rather than when a
+pointer moves.
+
 - **`cellAt`** and **`canPlace`** — pure functions over numbers and cell rectangles. Neither
   touches an element, which is what makes the per-event work a few arithmetic operations
   and an overlap scan rather than a layout pass.

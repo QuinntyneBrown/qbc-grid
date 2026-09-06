@@ -151,6 +151,25 @@ dependency — and it is why there is no separate library between the page and t
 component whose whole job was to sit on the far side of that boundary would be a file
 justified by a folder rather than by a behaviour.
 
+`commit` is the one gate, and what it compares decides what the grid reports. Comparing
+geometry alone answers a narrower question than the one it is asked. Dropping a duplicate
+id changes the layout and moves nothing; so does a corrected label, a new size limit, or a
+different order. Each of those is a change `L2-026` requires reported, and a coordinate
+comparison reports none of them, so the gate compares identity, order, geometry, lock,
+label, and limits. The geometry-only test keeps one job: deciding whether a move or resize
+came to rest where it started, which is the question `L2-013` actually asks.
+
+Repair is reported against the layout that arrived rather than against a flag. A boolean
+saying that the last input needed repair cannot distinguish the second malformed layout
+from the first, so two arriving in turn produce one report where the requirement asks for
+two. The report is therefore tied to the input that caused it.
+
+Records leave the grid detached and ordinary. Detaching them is what keeps a host writing
+to what it received from reaching the grid's own state; freezing them would raise an error
+in the host's code instead, which is a different outcome from the one `L2-023` describes —
+and the demonstration page mutates an emitted record on purpose, precisely so the
+requirement is tested rather than assumed.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirements. Each L2 requirement
@@ -158,7 +177,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-023` | `L1-008` | The grid shall expose the layout as plain tile records, shall emit it only when a committed interaction, an add, a remove, or a repair changes it, and shall not emit during a drag or resize. |
+| `L2-023` | `L1-008` | The grid shall expose the layout as plain tile records, shall emit a detached and mutable snapshot only when a committed interaction, an add, a remove, or a repair changes the identity, order, geometry, lock, label, or size limits it holds, and shall not emit during a drag or resize. |
 | `L2-024` | `L1-008` | A layout emitted by the grid shall carry every tile property the host supplied, shall reproduce the same rendered geometry when supplied back to a grid with the same configuration, and shall emit nothing on load when no repair is needed. |
 
 ## Diagrams
@@ -183,7 +202,7 @@ in production and a deterministic mock under Playwright.
 
 ### Behaviour — publish a changed layout
 
-Pointer moves change the shadow and emit nothing. Release commits once, freezes a copy,
+Pointer moves change the shadow and emit nothing. Release commits once, copies a detached record,
 and the host persists it.
 
 ![Sequence diagram for publishing a changed layout](diagrams/sequence-publish.png)
