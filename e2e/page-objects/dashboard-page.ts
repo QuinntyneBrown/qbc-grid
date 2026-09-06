@@ -317,6 +317,73 @@ export class DashboardPageObject {
     );
   }
 
+  /**
+   * Every visual value the grid paints while a drag is running.
+   *
+   * The comparison is between renders rather than against a list of expected values: a
+   * literal is caught by being the one value that does not move when the whole catalogue
+   * is redefined, and naming the values in advance would only check the ones anyone
+   * remembered to name.
+   */
+  async paintedValuesDuringDrag(): Promise<Record<string, string>> {
+    await this.pressTile('plain');
+    await this.movePointerBy(0, 2 * (await this.rowPitch()));
+    await this.shadow.waitFor({ state: 'attached' });
+
+    const painted = await this.page.evaluate(() => {
+      const read = (selector: string, properties: string[]) => {
+        const element = document.querySelector(selector);
+        if (element === null) return {};
+        const style = getComputedStyle(element);
+        return Object.fromEntries(
+          properties.map((property) => [`${selector} ${property}`, style.getPropertyValue(property)]),
+        );
+      };
+      return {
+        // The dragged tile carries the elevation and the stacking level a consumer can
+        // move. The order the overlay and the shadow sit in relative to the tiles is
+        // structure inside the component rather than a value a theme sets, so it is not
+        // among the colours, radii, border widths, elevations, and durations this reads.
+        ...read('.qbc-grid__tile--dragging', [
+          'background-color',
+          'border-top-color',
+          'border-top-width',
+          'border-top-left-radius',
+          'box-shadow',
+          'z-index',
+        ]),
+        ...read('[data-qbc-shadow]', [
+          'background-color',
+          'border-top-color',
+          'border-top-width',
+          'border-top-left-radius',
+        ]),
+        ...read('[data-qbc-overlay]', ['background-image', 'transition-duration']),
+        ...read('[data-qbc-handle]', ['border-right-color', 'inline-size']),
+      };
+    });
+
+    await this.releasePointer();
+    return painted;
+  }
+
+  /** Redefines tokens on the document, which is how a consumer restyles the grid. */
+  async redefineTokens(tokens: Record<string, string>): Promise<void> {
+    await this.page.evaluate((values) => {
+      for (const [token, value] of Object.entries(values)) {
+        document.documentElement.style.setProperty(token, value);
+      }
+    }, tokens);
+  }
+
+  async shadowBorderColour(): Promise<string> {
+    return this.shadow.evaluate((element) => getComputedStyle(element).borderTopColor);
+  }
+
+  async overlayTransitionDuration(): Promise<string> {
+    return this.overlay.evaluate((element) => getComputedStyle(element).transitionDuration);
+  }
+
   /** Whether the focused tile is drawing the focus indicator. */
   async focusRingVisible(): Promise<boolean> {
     return this.page.evaluate(() => {

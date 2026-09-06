@@ -25,7 +25,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npx ng serve e2e-app --configuration e2e --port ${PORT}`,
+    command: `npm run tokens && npx ng serve e2e-app --configuration e2e --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env['CI'],
     timeout: 180_000,

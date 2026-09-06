@@ -3,7 +3,9 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "schematicCollections": ["angular-eslint"]
+    "schematicCollections": [
+      "angular-eslint"
+    ]
   },
   "newProjectRoot": "src",
   "projects": {
@@ -48,13 +50,29 @@
             "browser": "src/e2e-app/main.ts",
             "index": "src/e2e-app/index.html",
             "tsConfig": "src/e2e-app/tsconfig.app.json",
-            "styles": ["src/e2e-app/styles.css"]
+            "styles": [
+              "src/e2e-app/styles.css"
+            ],
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "src/e2e-app/public"
+              }
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
               ],
               "outputHashing": "all"
             },
@@ -80,9 +98,15 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
-            "production": { "buildTarget": "e2e-app:build:production" },
-            "development": { "buildTarget": "e2e-app:build:development" },
-            "e2e": { "buildTarget": "e2e-app:build:e2e" }
+            "production": {
+              "buildTarget": "e2e-app:build:production"
+            },
+            "development": {
+              "buildTarget": "e2e-app:build:development"
+            },
+            "e2e": {
+              "buildTarget": "e2e-app:build:e2e"
+            }
           },
           "defaultConfiguration": "development"
         }
@@ -100,19 +124,31 @@
             "browser": "src/dev-app/main.ts",
             "index": "src/dev-app/index.html",
             "tsConfig": "src/dev-app/tsconfig.app.json",
-            "styles": ["src/dev-app/styles.css"]
+            "styles": [
+              "src/dev-app/styles.css"
+            ]
           },
           "configurations": {
-            "production": { "outputHashing": "all" },
-            "development": { "optimization": false, "extractLicenses": false, "sourceMap": true }
+            "production": {
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
-            "production": { "buildTarget": "dev-app:build:production" },
-            "development": { "buildTarget": "dev-app:build:development" }
+            "production": {
+              "buildTarget": "dev-app:build:production"
+            },
+            "development": {
+              "buildTarget": "dev-app:build:development"
+            }
           },
           "defaultConfiguration": "development"
         }

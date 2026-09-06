@@ -8,6 +8,7 @@ import {
 import { GridComponent, GridMode, GridTile, GridTileTemplateDirective } from 'qbc-grid';
 
 import { DASHBOARD_SERVICE } from './dashboard-service.token';
+import { TOKEN_STYLESHEETS } from './token-configuration';
 import { TelemetryWidget } from './telemetry-widget';
 
 /**
@@ -89,6 +90,18 @@ export class DashboardPage {
    * what the grid emitted. The record lives here rather than in the library because a
    * published grid has no business carrying instrumentation for its own tests.
    */
+  constructor() {
+    // The route is the token configuration, so the page loads what that configuration
+    // names and nothing else. `L2-034` compares the three renders against each other.
+    const route = location.pathname.replace(/\/$/, '');
+    for (const href of TOKEN_STYLESHEETS[route] ?? TOKEN_STYLESHEETS['']!) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.append(link);
+    }
+  }
+
   readonly emissions = signal(0);
   readonly lastLayout = signal('');
 

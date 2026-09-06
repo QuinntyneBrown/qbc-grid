@@ -453,6 +453,12 @@ export class GridComponent {
     const element = this.dragged;
     this.dragged = null;
     if (element === null) return;
+
+    // The tile settles back to the geometry it held. The transition is carried by a class
+    // added here and dropped once it is over, so the drag itself is never transitioned.
+    element.classList.add('qbc-grid__tile--settling');
+    setTimeout(() => element.classList.remove('qbc-grid__tile--settling'), SETTLE_MS);
+
     element.classList.remove('qbc-grid__tile--dragging');
     element.style.removeProperty('--qbc-drag-offset-x');
     element.style.removeProperty('--qbc-drag-offset-y');

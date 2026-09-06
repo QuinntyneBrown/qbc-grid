@@ -126,6 +126,16 @@
   pointer-events: none;
   z-index: 0;
   background-origin: content-box;
+
+  /*
+   * One of the two transitions the grid has. The overlay is inserted when an interaction
+   * begins, so the entry needs a starting style rather than a class: a property has no
+   * previous value on an element that was not there a frame ago. It is removed outright at
+   * the end, which is what `L2-019` asks for and what reduced motion produces on both
+   * edges once the duration token resolves to zero.
+   */
+  opacity: 1;
+  transition: opacity var(--qbc-duration-fast, 120ms) var(--qbc-easing-standard, ease);
   background-image:
     repeating-linear-gradient(
       to right,
@@ -141,6 +151,12 @@
       transparent var(--qbc-border-width-hairline, 1px),
       transparent calc(var(--qbc-grid-row-height) + var(--qbc-grid-gap))
     );
+}
+
+@starting-style {
+  .qbc-grid__overlay {
+    opacity: 0;
+  }
 }
 
 /*
@@ -216,9 +232,34 @@
   z-index: 2;
 }
 
+/*
+ * The other transition: a tile returning to the geometry it held after a refused or
+ * abandoned interaction. It is a class the component adds for the settle and drops again,
+ * so a drag itself is never transitioned and never lags the pointer.
+ */
+.qbc-grid__tile--settling {
+  transition: transform var(--qbc-duration-settle, 180ms) var(--qbc-easing-standard, ease);
+}
+
 .qbc-grid__tile--dragging {
   z-index: var(--qbc-layer-drag, 10);
   box-shadow: var(--qbc-elevation-drag, 0 8px 24px rgb(0 0 0 / 0.55));
   will-change: transform;
   user-select: none;
+}
+
+/*
+ * An operator asking for reduced motion outranks a theme that asks for movement.
+ *
+ * The token file zeroes both duration tokens under the same preference, and that alone is
+ * not enough twice over: a consumer rendering without the token file falls back to the
+ * literals in this stylesheet, and a host redefining the tokens would otherwise reinstate
+ * the animation the operator turned off. The durations are therefore zeroed here as well,
+ * where nothing a host writes can reach them.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .qbc-grid__overlay,
+  .qbc-grid__tile--settling {
+    transition-duration: 0s;
+  }
 }

@@ -10,15 +10,18 @@
     "ng": "ng",
     "start": "ng serve e2e-app",
     "start:dev-app": "ng serve dev-app",
-    "build": "ng build qbc-grid && ng build e2e-app && ng build dev-app",
+    "build": "npm run tokens && ng build qbc-grid && ng build e2e-app && ng build dev-app",
     "build:lib": "ng build qbc-grid",
     "build:tokens": "npm run build --workspace @qbc/design-system",
-    "test": "ng test qbc-grid --watch=false",
+    "test": "ng test qbc-grid --watch=false && npm run test:tokens",
     "e2e": "playwright test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "docs:prove": "python docs/tools/prove_gapcheck.py",
-    "docs:check": "python docs/tools/gapcheck.py"
+    "docs:check": "python docs/tools/gapcheck.py",
+    "tokens": "node tools/stage-tokens.mjs",
+    "test:tokens": "npm run test --workspace @qbc/design-system",
+    "verify:consumer": "node tools/verify-consumer.mjs && node tools/check-consumer-runs.mjs"
   },
   "dependencies": {
     "@angular/common": "^21.2.0",

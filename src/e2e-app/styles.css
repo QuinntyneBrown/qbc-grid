@@ -1,4 +1,7 @@
-@import '@qbc/design-system/qbc-tokens.css';
+/*
+ * The tokens are not imported here. Three routes exist to render the grid with the
+ * catalogue loaded, absent, and overridden, and a global import would load it on all three.
+ */
 
 :root {
   color-scheme: dark;

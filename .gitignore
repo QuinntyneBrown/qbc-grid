@@ -48,3 +48,8 @@ __pycache__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Generated from the design system, staged for the demonstration application
+/src/e2e-app/public/qbc-tokens.css
+/src/e2e-app/public/tokens-overridden.css
+/design-system/dist

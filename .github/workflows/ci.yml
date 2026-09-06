@@ -29,6 +29,13 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - run: npm run build:tokens
+      # L2-033 is proved by symptom: a bundled Angular gives the consumer a second runtime
+      # and an injector error, and a service injected from outside gives a null-injector
+      # failure. The workspace route cannot see either, because a path mapping resolves the
+      # library from source and shares the workspace's own Angular.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run verify:consumer
 
   acceptance:
     runs-on: ubuntu-latest
