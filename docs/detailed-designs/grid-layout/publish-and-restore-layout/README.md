@@ -87,8 +87,27 @@ service contract.
   the token, and each implementation live in separate files.
 - **`DashboardService`** — the production adapter. It reads and writes the layout as JSON
   in browser storage, and converts the stored value to a signal at the boundary.
-- **`MockDashboardService`** — the adapter bound under Playwright, returning a fixed
-  layout so an acceptance test never depends on stored state.
+- **`MockDashboardService`** — the adapter bound under Playwright. It resolves a named
+  layout from a `fixture` parameter on the URL and falls back to the ordinary dashboard when
+  none is named, so an acceptance test never depends on stored state and never on the
+  leftovers of the test before it.
+- **`layout-fixtures.ts`** — the named layouts, declared once beside the mock. Forty-two of
+  the acceptance criteria open by fixing a starting arrangement — an empty grid, a grid of
+  three tiles, a first row occupied through column 5, a tile at column 9 of twelve, sixty
+  tiles of static content, five hundred records — and each of those arrangements is a
+  fixture rather than a set-up written into a specification.
+
+  Naming them keeps the *given* independent of the behaviour under test. A specification
+  that built its starting layout by clicking Add tile would depend on placement working
+  before it could test anything else, so a defect in `findFreeCell` would fail dozens of
+  unrelated specifications and hide which one had found it. A fixture puts the grid in a
+  state directly, and a specification then exercises one behaviour and reports on one
+  behaviour.
+
+  A parameter rather than a route, unlike the token configurations. Those change the
+  stylesheets the document carries, which settles before the first paint; a fixture changes
+  only what the adapter returns when the page asks. Routing them would multiply three token
+  routes by every fixture, for a distinction the browser never needs to make.
 
 The binding happens at composition and nowhere else. `app.config.ts` provides
 `DASHBOARD_SERVICE` with `DashboardService`; an `e2e` build configuration replaces that one

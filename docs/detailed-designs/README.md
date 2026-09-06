@@ -61,8 +61,8 @@ deliverable and depends on nothing above it.
 The front end is tested with Playwright and the Page Object Model: a page object owns the
 selectors and a test states intent. There is one page object, because there is one screen.
 The dashboard is served at three routes, and a route is a way of opening that screen rather
-than a screen of its own, so the page object takes the configuration as a parameter and the
-selectors are written once. Three page objects for three routes would put the same selector
+than a screen of its own, so the page object takes the token configuration and the named
+layout fixture as parameters and the selectors are written once. Three page objects for three routes would put the same selector
 in three files, which is the duplication the rule exists to prevent and the reason a
 stylesheet change would then break the suite in three places instead of none. That division holds only where the grid publishes
 something stable for a page object to hold on to. A page object written against internal
