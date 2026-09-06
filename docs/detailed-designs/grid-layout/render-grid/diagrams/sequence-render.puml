@@ -41,11 +41,12 @@ dom --> grid : Content width
 grid -> grid : Derive columnWidth per L2-001
 grid -> normalize : Repair the supplied layout per L2-025
 normalize --> grid : Repaired tiles and a repaired flag
-loop for each tile
+loop for each tile, in the row-major order orderedTiles imposes
   grid -> rect : Convert geometry to a pixel rectangle per L2-002
   rect --> grid : Rectangle
   grid -> dom : Write tile custom properties and transform
 end
+note over grid : Document order is reading order, which is what gives L2-006 its tab order
 grid -> grid : Derive rowCount from the lowest occupied row per L2-003
 grid -> dom : Set the grid host height
 dom --> actor : Present the arranged dashboard

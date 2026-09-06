@@ -153,8 +153,9 @@ both position and colour.
 
 ### Behaviour — move a tile to a free cell
 
-The threshold gates the gesture, capture follows it, and each frame snaps, validates, and
-writes once. Release adopts the shadow and emits the layout.
+The threshold gates the gesture, capture follows it, the lift is applied once rather than per
+frame, and each frame snaps, validates, and writes once. Release adopts the shadow, and emits
+the layout only when the tile did not land where it began.
 
 ![Sequence diagram for moving a tile to a free cell](diagrams/sequence-move-commit.png)
 
