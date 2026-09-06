@@ -7,6 +7,10 @@ The specification and design here are implemented, and the acceptance suite driv
 
 ## Where things are
 
+For integration, start with the [root README](../README.md) and [API guide](api.md).
+The [demo guide](demo.md) links the five-minute video, transcript, and recording tools.
+The [design system guide](../design-system/README.md) covers the token package and gallery.
+
 | Path | Holds |
 |------|-------|
 | [`prompt.md`](prompt.md) | the original brief, seven lines, the source of every requirement |

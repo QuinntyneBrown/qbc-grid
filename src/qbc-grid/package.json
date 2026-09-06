@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "An Angular grid that arranges dashboard tiles on a cell-based layout and lets an operator move and resize them with a pointer or the keyboard.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QuinntyneBrown/qbc-grid.git",
+    "directory": "src/qbc-grid"
+  },
+  "homepage": "https://github.com/QuinntyneBrown/qbc-grid#readme",
+  "bugs": {
+    "url": "https://github.com/QuinntyneBrown/qbc-grid/issues"
+  },
   "sideEffects": false,
   "peerDependencies": {
     "@angular/common": "^21.0.0",
