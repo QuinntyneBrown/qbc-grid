@@ -65,13 +65,27 @@ announcement.
   otherwise derives a name from the `id`. Every tile therefore has a non-empty accessible
   name, and a host that supplies none still gets a usable announcement rather than an
   unlabelled control.
-- **`announcementFor(name, cell, accepted)`** — composes the live region text: the tile
-  name with its one-based column and row for a committed move, the new span for a committed
-  resize, and a statement that the command was blocked for a refusal.
-- **The instruction element** — one visually hidden element in the grid, carrying the
+- **`GridCommandOutcome`** — what a run came to: the command was accepted, or it was
+  refused because the target was occupied, because it left the grid, or because a size
+  limit stopped it. The reason is carried rather than reduced to a boolean, because the
+  sentence differs by reason and a caller handed only `false` has to infer one from the
+  cell it was given.
+- **`announcementFor(name, kind, cell, outcome)`** — composes the live region text: the
+  tile name with its one-based column and row for a committed move, the new span for a
+  committed resize, and the resting geometry together with the reason for a refusal. Three
+  arguments could not carry that: whether a command moved or resized, and why it was
+  refused, are both parts of the sentence, and a function receiving neither has to guess
+  one from the shape of the cell it was handed.
+- **The instruction element** — one visually hidden element per grid instance, carrying the
   sentence that names the commands, with every unlocked tile in `edit` mode pointing at it
-  through `aria-describedby`. Each tile also carries an `aria-roledescription` naming it a
-  dashboard tile, so what is focused is identified before what can be done to it.
+  through `aria-describedby`. Its id is unique to the grid that owns it, because two grids
+  on one page would otherwise both describe whichever element won the duplicate id.
+
+  Each tile carries a named grouping role, and `aria-roledescription` names it a dashboard
+  tile on top of that role rather than in place of one. A role description renames a role;
+  it does not create one, and it is ignored outright on a generic element, so a tile
+  relying on it alone reaches assistive technology as an unlabelled `div` that happens to
+  claim a name.
 
   Announcing a result is not the same as offering a command. Without the description a
   screen-reader user reaches a tile, hears its name, and has no way to learn that the arrow
@@ -91,8 +105,20 @@ announcement.
   to try again. Alternating the two regions makes every write a change in one of them,
   without padding the text with characters a screen reader would read out.
 
-  It is written once a run of commands settles, on the same window the overlay uses, and not
-  once per command. A held arrow key commits at the keyboard's repeat rate, and a polite
+  Alternation alone covers two repeats and fails on the third, which is the one an operator
+  reaches by pressing a blocked key three times. The third write returns to the region that
+  received the first, and that region already holds the sentence, so the write is not a
+  change and nothing is spoken. Each outcome therefore carries a value that advances whether
+  or not the text does, and the region is written from that value rather than from the
+  sentence alone.
+
+  A run ends on the release of the key that drove it, on the tile losing focus, or on the
+  settle interval passing with no further command, whichever comes first. Its single
+  announcement names where the tile came to rest and, when a refusal ended the run, names
+  that too: a run that moved twice and then met an obstacle reports both, because a message
+  saying only that something was blocked withholds the position the operator was waiting
+  for. It is written once a run of commands settles, on the same window the overlay uses,
+  and not once per command. A held arrow key commits at the keyboard's repeat rate, and a polite
   region queues rather than interrupts, so announcing each step would read a backlog of
   positions the tile passed through minutes after it stopped at the last of them. The
   operator this feature exists for would be listening to history. The saves coalesce and the
@@ -137,7 +163,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-027` | `L1-010` | With an unlocked tile focused in `edit` mode, each arrow key shall move the tile one cell in that direction, `Control` with an arrow shall move it to the nearest position in that direction where it fits, each shall refuse a move that leaves the grid or finds no free position, each shall retain focus on the tile, and the grid shall consume a key only while the tile surface itself holds focus. |
 | `L2-028` | `L1-010` | With an unlocked tile focused in `edit` mode, `Shift` with a horizontal arrow shall change `cols` by one and `Shift` with a vertical arrow shall change `rows` by one, subject to the size limits and overlap rules of a pointer resize. |
-| `L2-029` | `L1-010` | The grid shall give every tile a non-empty accessible name and shall announce each committed or refused keyboard move or resize through a polite live region, and shall describe on a tile focused in `edit` mode the keys that move and resize it, and shall announce a run of commands once, when the tile comes to rest, and shall announce a repeated outcome as often as it occurs. |
+| `L2-029` | `L1-010` | The grid shall carry a named grouping role on its host and on every tile, shall give every tile a non-empty accessible name after trimming, shall announce each committed or refused keyboard move or resize through a polite live region, shall describe on a tile focused in `edit` mode the keys that move and resize it through instructions unique to that grid, shall close a run of commands on key release or loss of focus and announce it once with the tile's resting geometry and any refusal that ended it, and shall announce a repeated outcome as often as it occurs however many times it repeats. |
 
 ## Diagrams
 

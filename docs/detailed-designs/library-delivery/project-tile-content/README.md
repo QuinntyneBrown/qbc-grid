@@ -61,10 +61,23 @@ Projection is one directive, one context type, and a tracked loop.
   order the template iterates, and Angular then moves that element among its siblings.
   Because the loop is tracked by `id`, the element and its embedded view are moved rather
   than destroyed and rebuilt, so the projected component instance and every piece of its
-  state survive, which is what this requirement asks for. A DOM move does briefly detach
-  the node. Ordinary components notice nothing; content that reloads on detachment — an
-  `iframe`, or media that is playing — would restart, so a tile holding such content should
-  own a wrapper that survives the move rather than being the moved element itself.
+  state survive, which is what this requirement asks for.
+
+  A DOM move does briefly detach the node, and Angular's view identity is not the browser's.
+  An embedded view can be moved intact while the browser resets what it holds: focus goes to
+  the document, an `iframe` reloads, playing media restarts. A wrapper inside the tile does
+  not help, because the wrapper is inside the subtree that moved; only a node that is not
+  moved keeps its connection, and the tile is the thing being moved.
+
+  So the requirement is met for what a component owns — instance identity, scroll position,
+  the value and focus of a field — and the design carries that and no more. Focus is
+  captured before a commit that reorders and restored after it, and only when the reorder
+  is what took it, so a move never pulls focus back from somewhere the operator sent it.
+  Native content that reloads on detachment is outside what this design promises: keeping
+  it would need a state-preserving DOM move, and whether one is available is a property of
+  the renderer and the browser rather than of this component. A criterion counting
+  constructor calls would report success in every one of these cases, so the acceptance
+  reads the scroll position and the active element instead.
 
 Host values that do reach the DOM — the accessible name and the tile id — travel through
 Angular property and attribute bindings, which escape their input. A `label` of

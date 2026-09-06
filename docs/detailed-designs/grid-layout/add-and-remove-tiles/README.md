@@ -85,7 +85,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-020` | `L1-007` | `addTile` shall insert a tile at the requested geometry after normalization, shall place it at the first free position when the requested cells are occupied, and shall reject an id that is already present. |
 | `L2-021` | `L1-007` | `addTile` without `x` and `y` shall scan row-major from `(0, 0)` for the first position where the span fits, shall otherwise place the tile at column 0 on the first row below the lowest occupied row, and shall bound its search by the records present rather than by the coordinates they carry. |
-| `L2-022` | `L1-007` | `removeTile` shall remove the tile with the given id, emit the layout, leave every other geometry unchanged, and treat an unknown id as a no-op, and shall place focus on a neighbouring tile when the removed tile held it. |
+| `L2-022` | `L1-007` | `removeTile` shall remove the tile with the given id, emit the layout, leave every other geometry unchanged, and treat an unknown id as a no-op, and shall place focus on the nearest neighbouring tile able to hold it, or on the grid host, when the removed subtree held focus and not otherwise. |
 
 ## Diagrams
 

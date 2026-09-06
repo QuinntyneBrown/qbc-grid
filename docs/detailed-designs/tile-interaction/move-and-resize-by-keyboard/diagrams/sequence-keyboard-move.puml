@@ -39,14 +39,21 @@ keys --> grid : Candidate one column to the right
 grid -> canplace : Test the candidate against every other tile
 canplace --> grid : Free
 grid -> grid : Open the settle window, showing the overlay per L2-019
-grid -> grid : Adopt the candidate and keep focus on the tile per L2-027
-grid -> dom : Scroll the tile into view by the smallest amount that works per L2-027
-note over grid, dom : A transform is not a focus change, so without this the focused tile slides out of view
-grid -> dashboard : Emit layoutChange exactly once
-grid -> announce : Compose the accepted announcement per L2-029
-announce --> grid : Tile name with its one-based column and row
-grid -> dom : Write the text into the polite live region
-dom -> at : Announce the new position
+loop each command while the key is held
+  grid -> grid : Adopt the candidate and keep focus on the tile per L2-027
+  grid -> dom : Scroll the tile into view by the smallest amount that works per L2-027
+  note over grid, dom : A transform is not a focus change, so without this the focused tile slides out of view
+  grid -> dashboard : Emit layoutChange exactly once per command
+  grid -> grid : Extend the settle window rather than opening another
+end
+note over grid : No announcement is written while the run is open
+actor -> dom : Release the key
+dom -> grid : keyup closes the run per L2-029
+grid -> announce : Compose the run's outcome per L2-029
+announce --> grid : Tile name with its resting one-based column and row, and any refusal that closed the run
+grid -> grid : Advance the outcome value so a repeat is a change
+grid -> dom : Write the text into the polite live region that was not written last
+dom -> at : Announce the resting position
 grid -> grid : Close the settle window, hiding the overlay
 dom --> actor : Present the moved tile, still focused and still in view
 @enduml

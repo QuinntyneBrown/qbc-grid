@@ -22,6 +22,9 @@ box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "GridPointerSession" as session
 end box
+box "Platform - desktop browser" #FFF4E5
+  participant "DOM" as dom
+end box
 
 actor -> page : Choose Remove tile
 page -> grid : removeTile(id)
@@ -32,7 +35,14 @@ else id is present
     grid -> session : Cancel and release pointer capture per L2-022
     session --> grid : Interaction discarded and overlay hidden
   end
+  opt the removed subtree held focus
+    grid -> grid : Choose the nearest neighbour able to hold focus, else the grid host per L2-022
+  end
   grid -> grid : Drop the tile, leaving every other geometry unchanged
+  opt a focus destination was chosen
+    grid -> dom : Move focus there
+    note over grid, dom : Focus is moved only when the removed subtree held it, so a control elsewhere keeps it
+  end
   grid --> page : Emit layoutChange once per L2-023
   page -> page : Persist the layout
   page --> actor : Present the reduced dashboard

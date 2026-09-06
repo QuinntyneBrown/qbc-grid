@@ -44,7 +44,7 @@ class accessibleNameOf <<function>> {
 }
 
 class announcementFor <<function>> {
-  +announcementFor(name: string, cell: GridCell, accepted: boolean): string
+  +announcementFor(name: string, kind: GridInteractionKind, cell: GridCell, outcome: GridCommandOutcome): string
 }
 
 class clampSpan <<function>> {

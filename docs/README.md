@@ -11,7 +11,7 @@ No code exists yet; everything here is specification and design.
 |------|-------|
 | [`prompt.md`](prompt.md) | the original brief, seven lines, the source of every requirement |
 | [`specs/L1.md`](specs/L1.md) | 14 high-level requirements, and the scope boundaries |
-| [`specs/L2.md`](specs/L2.md) | 34 detailed requirements, 151 acceptance criteria |
+| [`specs/L2.md`](specs/L2.md) | 34 detailed requirements, 155 acceptance criteria |
 | [`detailed-designs/`](detailed-designs/) | 3 subsystems, 14 feature designs, 51 diagrams |
 | [`usability-performance-audit.md`](usability-performance-audit.md) | usability and performance findings, priorities, source evidence, and proposed acceptance scenarios |
 | [`tools/`](tools/) | the checks, and the harness that proves the checks work |

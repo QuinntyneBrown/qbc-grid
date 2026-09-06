@@ -8,7 +8,7 @@ Container_Boundary(components, "src/qbc-grid") {
   Component(keys, "gridKeyboardCandidate", "TypeScript function", "Maps a key event to a candidate cell for L2-027 and L2-028")
   Component(clamp, "clampSpan", "TypeScript function", "Applies the tile size limits to a resize candidate without moving its origin")
   Component(canplace, "canPlace", "TypeScript function", "Decides whether the candidate is free")
-  Component(announce, "announcementFor", "TypeScript function", "Composes the committed or refused announcement for L2-029")
+  Component(announce, "announcementFor", "TypeScript function", "Composes the resting position and any refusal that closed a run for L2-029")
   Component(live, "live region", "Template element", "Polite aria-live region carrying the announcement")
   Component(name, "accessibleNameOf", "TypeScript function", "Falls back from label to id for L2-029")
 }
