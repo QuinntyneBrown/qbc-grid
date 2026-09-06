@@ -39,6 +39,12 @@ Mode is a single input on `GridComponent`, and everything else derives from it.
   `y`, then `x`, then `id`, so document order already matches reading order and the tab
   order follows it without a `tabindex` above zero. The supplied layout carries no such
   guarantee, which is why the sort exists rather than being assumed.
+- **The demonstration page's controls** — withheld in `live` mode. The grid withdraws its
+  own tiles from the tab order, and reaches no further; the add, remove, and lock controls
+  belong to projected content and would stay tabbable on an inert dashboard if the page kept
+  rendering them. A watching operator tabbing into a button that rearranges the dashboard is
+  the opposite of what `live` means, so the page renders those controls only in `edit`. That
+  is a host decision, and it is the host that has to make it.
 - **`grid.css`** — the stylesheet keys the move cursor, the resize handle's visibility,
   and the focus ring off a `data-mode` attribute written on the host. Presenting the
   affordances in CSS rather than in a template branch means the mode switch is one

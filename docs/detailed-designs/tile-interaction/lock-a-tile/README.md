@@ -47,6 +47,14 @@ than caching anything.
   second barrier rather than the only one.
 - **`GridComponent.tabIndexOf`** — returns `-1` for a locked tile, keeping it out of the
   tab order while leaving it readable.
+
+  What that withdraws is the tile element, and only the tile element. A `tabindex` of `-1`
+  does not reach a focusable descendant, so a button the host projected into the tile stays
+  in the tab order — and that is the behaviour the design wants, not a leak around it. The
+  unlock toggle lives in projected content, so a rule that swept the whole subtree out of
+  the tab order would lock a keyboard operator out of the one control that could release the
+  tile. `L2-008` asks that a locked tile not be focusable, and a locked tile is not; what its
+  content offers is the host's to decide, and the grid has no business reaching into it.
 - **`grid.css`** — a `data-locked` attribute on the tile element suppresses the move cursor
   and hides the resize handle. Suppressing the affordance in CSS keeps the rule beside the
   appearance it governs.
