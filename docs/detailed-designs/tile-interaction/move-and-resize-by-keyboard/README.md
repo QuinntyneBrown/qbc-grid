@@ -66,6 +66,13 @@ Focus stays on the tile across a committed command. The tile element is not re-c
 is repositioned through its custom properties — so focus survives without being restored,
 and an operator can press an arrow four times to move four cells.
 
+Surviving is not the same as being visible. Repositioning through a transform moves nothing
+the browser considers a focus change, so a tile walked downward with the arrow key keeps
+focus while sliding out of the viewport, leaving a keyboard operator driving something they
+cannot see. Each committed command therefore scrolls the tile into view by the smallest
+amount that works, which also makes the keyboard the usable route for the long moves a
+pointer drag cannot reach at all.
+
 An accepted command routes through the same private `commit` method as every other change,
 so a keyboard move emits once, exactly like a drag.
 

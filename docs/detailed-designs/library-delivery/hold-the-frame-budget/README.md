@@ -50,7 +50,12 @@ The budget is held by one small class and one cached record, used by every gestu
   on one element.
 - **`--qbc-elevation-drag`** — applied through a class on the dragged tile at gesture start
   and removed at its end, rather than per frame, so the lift costs one style change for the
-  whole gesture.
+  whole gesture. The same class carries `will-change: transform`, and the timing is the
+  reason it is worth naming. Promoting the tile to its own compositor layer is what keeps
+  the per-frame transform off the main thread, but a promotion costs memory and a paint, so
+  a grid that declared it on every tile would hold sixty layers to move one. Declaring it
+  only for the tile under the pointer, for only as long as the gesture lasts, is what buys
+  the compositing without the standing cost.
 
 The overlap scan in `canPlace` is linear in the tile count, which at 60 tiles is far below
 the cost of a single layout pass. It is left simple rather than indexed, because the

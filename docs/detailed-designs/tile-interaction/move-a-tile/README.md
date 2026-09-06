@@ -67,6 +67,15 @@ The threshold is 3 px. Below it there is no drag at all, and the pointer sequenc
 an ordinary click, which is what lets a button inside a tile stay clickable in `edit` mode.
 Pointer capture is requested only once the threshold is crossed, for the same reason.
 
+A drag reaches as far as the viewport showed when it began. Pointer capture routes every
+move to the tile, so the pointer arriving at the bottom edge scrolls nothing, and the grid
+adds no auto-scroll of its own. On a dashboard that fits the screen this costs nothing; on
+one taller than the screen it means a tile bound for a row below the fold is moved with the
+keyboard, or after scrolling the dashboard to bring the destination into view. Auto-scroll
+is excluded deliberately: a region that scrolls while the pointer rests near an edge has a
+speed, an acceleration, and a dead zone to tune, and every one of them is a judgement the
+operator did not ask to be made.
+
 Two of the browser's own gestures compete with this one, and both are suppressed for the
 duration of a gesture rather than permanently. Dragging across a tile that holds text
 selects that text, painting a highlight through the whole drag; and a tile holding an image
