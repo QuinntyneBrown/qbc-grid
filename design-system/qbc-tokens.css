@@ -1,0 +1,48 @@
+/*
+ * The qbc design tokens. This file is authoritative: a consumer depends on it rather
+ * than copying its values, and every component stylesheet reads these as
+ * `var(--qbc-<role>)`.
+ */
+
+:root {
+  /* Colour */
+  --qbc-color-surface: #14181d;
+  --qbc-color-surface-raised: #1c2229;
+  --qbc-color-border: #2b333c;
+  --qbc-color-accent: #4c9aff;
+  --qbc-color-accent-soft: #1b3a5c;
+  --qbc-color-danger: #f2545b;
+  --qbc-color-danger-soft: #4a1f24;
+  --qbc-color-grid-line: #323b45;
+  --qbc-color-focus: #7cc4ff;
+
+  /* Metric */
+  --qbc-space-1: 4px;
+  --qbc-space-2: 8px;
+  --qbc-space-3: 12px;
+  --qbc-space-4: 16px;
+  --qbc-radius-sm: 3px;
+  --qbc-radius-md: 6px;
+  --qbc-border-width-hairline: 1px;
+  --qbc-border-width-emphasis: 2px;
+  --qbc-size-handle: 24px;
+
+  /* Expression */
+  --qbc-elevation-resting: 0 1px 2px rgb(0 0 0 / 0.4);
+  --qbc-elevation-drag: 0 8px 24px rgb(0 0 0 / 0.55);
+  --qbc-layer-drag: 10;
+  --qbc-duration-fast: 120ms;
+  --qbc-duration-settle: 180ms;
+  --qbc-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/*
+ * An operator who asks for reduced motion gets none. Both duration tokens resolve to
+ * zero, which removes the overlay fade and the settle without touching behaviour.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --qbc-duration-fast: 0ms;
+    --qbc-duration-settle: 0ms;
+  }
+}

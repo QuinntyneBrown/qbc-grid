@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  inline-size: 100%;
+}
+
+.widget {
+  padding: 8px;
+}

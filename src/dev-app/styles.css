@@ -1,0 +1,8 @@
+@import '@qbc/design-system/qbc-tokens.css';
+
+body {
+  margin: 0;
+  font: 14px/1.5 system-ui, sans-serif;
+  background: #0b0e11;
+  color: #e6edf3;
+}

@@ -1,0 +1,13 @@
+@for (tile of tiles(); track tile.id) {
+  <div
+    class="qbc-grid__tile"
+    data-qbc-tile
+    [attr.data-qbc-tile]="tile.id"
+    [attr.data-locked]="tile.locked ? '' : null"
+  >
+    <ng-container
+      [ngTemplateOutlet]="tileTemplate()?.templateRef ?? null"
+      [ngTemplateOutletContext]="{ $implicit: tile }"
+    />
+  </div>
+}

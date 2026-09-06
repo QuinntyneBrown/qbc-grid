@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  position: relative;
+  inline-size: 100%;
+  outline: none;
+}
+
+.qbc-grid__tile {
+  position: absolute;
+  box-sizing: border-box;
+  background: var(--qbc-color-surface, #14181d);
+  border: var(--qbc-border-width-hairline, 1px) solid var(--qbc-color-border, #2b333c);
+  border-radius: var(--qbc-radius-md, 6px);
+  box-shadow: var(--qbc-elevation-resting, 0 1px 2px rgb(0 0 0 / 0.4));
+}

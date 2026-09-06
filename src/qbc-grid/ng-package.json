@@ -1,0 +1,7 @@
+{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "../../dist/qbc-grid",
+  "lib": {
+    "entryFile": "public-api.ts"
+  }
+}

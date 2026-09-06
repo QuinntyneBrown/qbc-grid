@@ -1,0 +1,6 @@
+dist
+out-tsc
+.angular
+test-results
+playwright-report
+docs

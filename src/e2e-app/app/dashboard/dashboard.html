@@ -1,0 +1,3 @@
+<qbc-grid [layout]="layout()" [mode]="mode()">
+  <div *qbcGridTile="let tile" class="widget">{{ tile.label ?? tile.id }}</div>
+</qbc-grid>

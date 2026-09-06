@@ -1,0 +1,15 @@
+{
+  "name": "@qbc/design-system",
+  "version": "0.1.0",
+  "description": "The authoritative qbc design tokens, and the gallery that shows them.",
+  "license": "MIT",
+  "type": "module",
+  "files": ["qbc-tokens.css"],
+  "exports": {
+    "./qbc-tokens.css": "./qbc-tokens.css"
+  },
+  "scripts": {
+    "build": "node tools/build-gallery.mjs",
+    "test": "node --test tools/tokens.test.mjs"
+  }
+}

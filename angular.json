@@ -1,0 +1,122 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "npm",
+    "schematicCollections": ["angular-eslint"]
+  },
+  "newProjectRoot": "src",
+  "projects": {
+    "qbc-grid": {
+      "projectType": "library",
+      "root": "src/qbc-grid",
+      "sourceRoot": "src/qbc-grid",
+      "prefix": "qbc",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "src/qbc-grid/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "src/qbc-grid/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "src/qbc-grid/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "src/qbc-grid/tsconfig.spec.json"
+          }
+        }
+      }
+    },
+    "e2e-app": {
+      "projectType": "application",
+      "root": "src/e2e-app",
+      "sourceRoot": "src/e2e-app",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/e2e-app/main.ts",
+            "index": "src/e2e-app/index.html",
+            "tsConfig": "src/e2e-app/tsconfig.app.json",
+            "styles": ["src/e2e-app/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "e2e": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/e2e-app/app/app.config.ts",
+                  "with": "src/e2e-app/app/app.config.e2e.ts"
+                }
+              ]
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": { "buildTarget": "e2e-app:build:production" },
+            "development": { "buildTarget": "e2e-app:build:development" },
+            "e2e": { "buildTarget": "e2e-app:build:e2e" }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "dev-app": {
+      "projectType": "application",
+      "root": "src/dev-app",
+      "sourceRoot": "src/dev-app",
+      "prefix": "dev",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/dev-app/main.ts",
+            "index": "src/dev-app/index.html",
+            "tsConfig": "src/dev-app/tsconfig.app.json",
+            "styles": ["src/dev-app/styles.css"]
+          },
+          "configurations": {
+            "production": { "outputHashing": "all" },
+            "development": { "optimization": false, "extractLicenses": false, "sourceMap": true }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": { "buildTarget": "dev-app:build:production" },
+            "development": { "buildTarget": "dev-app:build:development" }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  }
+}

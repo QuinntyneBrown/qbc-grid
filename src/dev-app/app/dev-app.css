@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  padding: var(--qbc-space-4, 16px);
+}
+
+.widget {
+  padding: var(--qbc-space-2, 8px);
+}
