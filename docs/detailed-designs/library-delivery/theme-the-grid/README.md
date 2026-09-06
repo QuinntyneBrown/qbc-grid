@@ -79,6 +79,13 @@ The slice is a package shape, an entry point, and a token catalogue.
   the fallback is dead. A fallback that disagrees with the design system's default for the
   same token is a defect in the library, not a second opinion.
 
+  Calling it a defect is not enough on its own, because a drifted fallback is invisible: it
+  only applies when the token file is absent, and a grid painted in slightly the wrong grey
+  still looks like a grid. `L2-034` therefore asks that the grid rendered without the token
+  file match the grid rendered with it, which turns every one of these copies into something
+  a run of the acceptance suite compares. The fallbacks are the one place the front end
+  duplicates a design-system value, and they are safe to keep for that reason and no other.
+
   One value resists a token override. `L2-015` fixes the resize handle's hit area at no less
   than 16 px, which is an accessibility floor rather than a matter of taste, so the
   stylesheet takes the larger of that floor and `--qbc-size-handle`. A consumer may enlarge
@@ -101,9 +108,12 @@ own — a tile's content, and its typography, belong to the host.
 Two directions matter and they are not symmetric. The design system carries no dependency on
 the application or on the grid. The front end depends on the design system, and it does so
 by loading the published token file rather than by holding a copy of the values: a copied
-set agrees with the source exactly until the first colour changes, and nothing in a build
-would report the disagreement. Depending on the file is what makes "the design system's copy
-is authoritative" true rather than aspirational.
+set agrees with the source exactly until the first colour changes, and nothing would report
+the disagreement. Depending on the file is what makes "the design system's copy is
+authoritative" true rather than aspirational. The library's fallbacks are the single
+exception, and they carry the detection the general case lacks — the criterion above
+compares them against the real tokens on every run, so they cannot drift quietly the way a
+copied file would.
 
 What the design system builds is therefore two artifacts from one source: the token file,
 published as a CSS package a consumer can load, and the gallery, deployed as its own static
