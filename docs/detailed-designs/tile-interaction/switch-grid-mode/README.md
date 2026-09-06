@@ -73,7 +73,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-005` | `L1-002` | In `live` mode the grid shall present no resize handle, no move cursor, and no focusable tile, and shall not change any tile geometry in response to a pointer or keyboard gesture. |
-| `L2-006` | `L1-002` | In `edit` mode the grid shall show a move cursor and a resize handle on every unlocked tile and shall place unlocked tiles in the tab order in row-major layout order. |
+| `L2-006` | `L1-002` | In `edit` mode the grid shall show a move cursor and a resize handle on every unlocked tile and shall place unlocked tiles in the tab order in row-major layout order, and shall show a focus indicator on a tile focused from the keyboard and not on one pressed with the pointer. |
 | `L2-007` | `L1-002` | The grid shall revert an interaction in progress when the mode changes away from `edit`. |
 
 ## Diagrams

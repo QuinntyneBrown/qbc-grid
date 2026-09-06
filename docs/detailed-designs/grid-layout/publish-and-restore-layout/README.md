@@ -153,7 +153,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-023` | `L1-008` | The grid shall expose the layout as plain tile records, shall emit it only when a committed interaction, an add, a remove, or a repair changes it, and shall not emit during a drag or resize. |
-| `L2-024` | `L1-008` | A layout emitted by the grid shall reproduce the same rendered geometry when supplied back to a grid with the same configuration, and shall emit nothing on load when no repair is needed. |
+| `L2-024` | `L1-008` | A layout emitted by the grid shall carry every tile property the host supplied, shall reproduce the same rendered geometry when supplied back to a grid with the same configuration, and shall emit nothing on load when no repair is needed. |
 
 ## Diagrams
 
