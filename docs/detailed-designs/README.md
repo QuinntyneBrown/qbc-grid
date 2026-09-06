@@ -152,11 +152,17 @@ cannot answer it. A control expressed in a criterion's *given* rather than its *
 easy to miss: the sweep that found the other four searched for what the host does, and this
 one is written as something that happens to a tile.
 
-`L2-007` asks for the mode to change while a drag is in progress, which pointer capture
-makes into a question of how. A dragging pointer is routed to the tile for as long as the
-gesture lasts, so a specification cannot reach the toggle with the same pointer. It
-activates the toggle from the keyboard instead, which is a real path an operator has and not
-a contrivance for the test.
+Three criteria act while a gesture is still in flight: `L2-007` changes the mode during a
+drag and again during a resize, and `L2-022` removes the tile that is being dragged. Pointer
+capture turns each of them into a question of how. The pointer that began the gesture is
+routed to the tile until the gesture ends, so no control anywhere on the page can be reached
+with it — not the mode toggle, and not the remove control, even though that one sits inside
+the tile the pointer is already over.
+
+Every one of them is driven from the keyboard instead, which is a path an operator genuinely
+has rather than a contrivance for the suite. It is also the only path, which is worth
+knowing before writing the specifications: a suite that reached for a second click here would
+find the gesture swallowing it and would read the result as a defect in the grid.
 
 A count answers the negatives and the exactly-once criteria; the payload answers the rest,
 such as `L2-013`, which asks that an emitted layout contain every tile with only the dragged
