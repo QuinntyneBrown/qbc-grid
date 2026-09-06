@@ -34,6 +34,14 @@ it in `frontend/projects/components/src/lib/grid/`.
 - **`GridComponent.removeTile(id)`** — drops the tile with that `id`, cancels any
   interaction in progress on it, and emits `layoutChange` once. An unknown `id` changes
   nothing and emits nothing.
+
+  Removing the tile a gesture is holding is the sharpest of the exits, because it is the only
+  one where the element that took pointer capture leaves the document before the capture is
+  given back. Releasing a capture on a detached element is the step a naive teardown gets
+  wrong, and it throws where every other exit is silent. `L2-022` therefore asks for the
+  three things that can be seen — the overlay gone, the shadow gone, and a different tile
+  able to start its own drag — in place of asking that the interaction end cleanly, which
+  was true of any behaviour at all.
 - **`AddTileRequest`** — `id`, `cols`, and `rows` are required; `x`, `y`, `locked`, and
   `label` are optional. Omitting `x` and `y` selects automatic placement.
 - **`clampTile`** — pure function reducing a span to at most `columns`, raising `cols`
