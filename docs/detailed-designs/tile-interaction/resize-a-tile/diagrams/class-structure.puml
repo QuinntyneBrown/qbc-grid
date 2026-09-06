@@ -51,8 +51,8 @@ class spanAt <<function>> {
   +spanAt(right: number, bottom: number, origin: GridCell, metrics: GridMetrics): GridCell
 }
 
-class clampTile <<function>> {
-  +clampTile(tile: GridTile, columns: number): GridTile
+class clampSpan <<function>> {
+  +clampSpan(tile: GridTile, columns: number): GridTile
 }
 
 class canPlace <<function>> {
@@ -63,7 +63,7 @@ GridTile --|> GridCell
 GridComponent --> GridPointerSession : owns
 GridComponent --> GridShadow : renders
 GridPointerSession ..> spanAt : snaps the corner with
-GridPointerSession ..> clampTile : applies size limits with
+GridPointerSession ..> clampSpan : applies size limits with
 GridPointerSession ..> canPlace : validates with
 GridShadow --> GridCell : targets
 spanAt ..> GridCell : returns

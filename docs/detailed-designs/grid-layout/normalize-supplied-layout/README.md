@@ -96,7 +96,7 @@ refines a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-025` | `L1-009` | The grid shall normalize every supplied layout deterministically by dropping records without an id and records with a duplicate id, coercing numbers, clamping spans and coordinates into range and into the rows it can represent, and moving a still-overlapping record down to the first row where it fits, bounding its search by the records present rather than by the coordinates they carry. |
+| `L2-025` | `L1-009` | The grid shall normalize every supplied layout deterministically by treating a supplied value that is not an array as an empty layout, dropping entries that are not records and records without a usable id or with a duplicate id, coercing numbers, size limits, and optional fields, clamping spans and coordinates into range and into the rows it can represent, and moving a still-overlapping record down to the first row where it fits, bounding its search by the records present rather than by the coordinates they carry. |
 | `L2-026` | `L1-009` | The grid shall emit the repaired layout exactly once when normalization changes a supplied layout, and shall emit nothing when it does not. |
 
 ## Diagrams

@@ -18,7 +18,7 @@ actor "Dashboard operator" as actor
 box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "GridPointerSession" as session
-  participant "clampTile" as clamp
+  participant "clampSpan" as clamp
   participant "canPlace" as canplace
 end box
 box "Platform - desktop browser" #FFF4E5

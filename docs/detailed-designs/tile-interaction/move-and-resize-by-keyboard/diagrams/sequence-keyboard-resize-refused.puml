@@ -18,7 +18,7 @@ actor "Dashboard operator" as actor
 box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "gridKeyboardCandidate" as keys
-  participant "clampTile" as clamp
+  participant "clampSpan" as clamp
   participant "canPlace" as canplace
   participant "announcementFor" as announce
 end box

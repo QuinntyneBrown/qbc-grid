@@ -8,7 +8,7 @@ Container_Boundary(components, "src/qbc-grid") {
   Component(handle, "resize handle", "Template element and stylesheet rule", "Bottom-right target of at least 24 px by 24 px")
   Component(session, "GridPointerSession", "TypeScript class", "Runs the resize gesture with kind of resize")
   Component(spanat, "spanAt", "TypeScript function", "Converts the dragged corner to a whole-cell span for L2-016")
-  Component(clamp, "clampTile", "TypeScript function", "Applies minCols, minRows, maxCols, maxRows, and the column bound for L2-017")
+  Component(clamp, "clampSpan", "TypeScript function", "Applies minCols, minRows, maxCols, maxRows, and the width left of the pinned origin for L2-017")
   Component(canplace, "canPlace", "TypeScript function", "Decides whether the span is free for L2-018")
   Component(scheduler, "GridFrameScheduler", "TypeScript class", "Collapses pointer events to one style write per frame")
 }

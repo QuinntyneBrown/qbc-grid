@@ -19,7 +19,7 @@ box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "GridPointerSession" as session
   participant "spanAt" as spanat
-  participant "clampTile" as clamp
+  participant "clampSpan" as clamp
   participant "canPlace" as canplace
   participant "GridFrameScheduler" as scheduler
 end box

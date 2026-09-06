@@ -48,10 +48,18 @@ described in [`move-a-tile`](../move-a-tile/).
 - **`spanAt`** — pure function converting the dragged corner's pixel position into a
   whole-cell span relative to the pinned origin, returning at least one column and one
   row.
-- **`clampTile`** — the same function that clamps a supplied tile during repair and an
-  added tile during placement. It applies `minCols`, `minRows`, `maxCols`, `maxRows`, and
-  the grid's column bound. Sharing it is why a resized tile, a restored tile, and an added
-  tile cannot end up under different rules.
+- **`clampSpan`** — applies `minCols`, `minRows`, `maxCols`, `maxRows`, and the width left
+  of the tile's own origin, which is `columns - x`. It changes `cols` and `rows` and leaves
+  `x` and `y` alone.
+
+  It is a sibling of `clampTile` rather than the same function, and the difference is the
+  origin. `clampTile` repairs a record arriving from storage, where an oversized span is
+  corrected by narrowing the tile and, where that is not enough, by moving it back inside
+  the grid. A resize has no such freedom: the origin corner is the one the operator is not
+  dragging, and moving it turns a resize into a move. A tile at column 9 of twelve grown
+  without limit stops at 3 columns, and `clampTile` would instead widen it to 12 and slide
+  it to column 0. The two share their numeric rules — the same minimums, the same
+  maximums, the same flooring — and differ in the one rule that cannot be shared.
 - **`canPlace`** — the same overlap test used everywhere else, applied to the clamped span.
 - **`GridShadow`** — carries the clamped span and its validity, so the rectangle on screen
   is the geometry that would be committed.
@@ -81,13 +89,13 @@ the [tree root](../../README.md#where-the-c4-levels-live).
 ### Components
 
 The handle starts the same session the move gesture uses, with `spanAt` in place of
-`cellAt` and `clampTile` applied before validation.
+`cellAt` and `clampSpan` applied before validation.
 
 ![C4 component view for resizing a tile](diagrams/c4-component.png)
 
 ### Class structure
 
-`spanAt` converts the dragged corner; `clampTile` enforces the tile's declared limits;
+`spanAt` converts the dragged corner; `clampSpan` enforces the tile's declared limits;
 `canPlace` decides validity. `GridShadow` carries the clamped span so the picture matches
 the outcome.
 

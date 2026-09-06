@@ -44,7 +44,7 @@ announcement.
 - **`gridKeyboardCandidate(event, tile, columns)`** — pure function mapping a key event to a
   candidate `GridCell`, or `null` for a key the grid does not consume. An unmodified arrow
   shifts `x` or `y` by one; `Shift` with a horizontal arrow changes `cols` and with a
-  vertical arrow changes `rows`. A resize candidate passes through `clampTile`, so
+  vertical arrow changes `rows`. A resize candidate passes through `clampSpan`, so
   `minCols`, `minRows`, `maxCols`, and the grid's column bound apply exactly as they do to a
   pointer resize.
 
