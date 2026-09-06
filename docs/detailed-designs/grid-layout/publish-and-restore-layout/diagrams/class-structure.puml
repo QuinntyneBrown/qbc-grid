@@ -44,15 +44,12 @@ class MockDashboardService {
 }
 
 class DashboardPage {
+  -service: IDashboardService
   +mode: Signal<GridMode>
+  +layout: Signal<readonly GridTile[]>
   +toggleMode(): void
   +onAddTile(): void
   +onRemoveTile(id: string): void
-}
-
-class DashboardComponent {
-  -service: IDashboardService
-  +layout: Signal<readonly GridTile[]>
   +onLayoutChange(layout: readonly GridTile[]): void
 }
 
@@ -62,9 +59,8 @@ class DASHBOARD_SERVICE <<InjectionToken>> {
 DashboardService ..|> IDashboardService
 MockDashboardService ..|> IDashboardService
 DASHBOARD_SERVICE ..> IDashboardService : provides
-DashboardPage --> DashboardComponent : composes
-DashboardComponent --> DASHBOARD_SERVICE : injects
-DashboardComponent --> GridComponent : binds layout to
+DashboardPage --> DASHBOARD_SERVICE : injects
+DashboardPage --> GridComponent : binds layout to
 GridComponent --> "*" GridTile : emits
 IDashboardService ..> GridTile : loads and saves
 @enduml

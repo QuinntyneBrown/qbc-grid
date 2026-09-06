@@ -16,10 +16,10 @@ skinparam package {
 }
 actor "Consuming developer" as dev
 actor "Dashboard operator" as operator
-box "Frontend - consuming application" #E0F2FE
+box "Consumer - an installing application" #E0F2FE
   participant "Application shell" as app
 end box
-box "Frontend - components library" #ECFDF3
+box "Library - src/qbc-grid" #ECFDF3
   participant "public-api.ts" as entry
   participant "GridComponent" as grid
   participant "grid.css" as styles

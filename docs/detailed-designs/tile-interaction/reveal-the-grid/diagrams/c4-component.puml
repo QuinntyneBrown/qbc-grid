@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Reveal the grid during an interaction
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Derives overlayVisible from the interaction in flight")
   Component(session, "GridPointerSession", "TypeScript class", "Publishes the interaction that gates the overlay")
   Component(keys, "gridKeyboardCandidate", "TypeScript function", "Supplies the command whose settle window raises the same gate")

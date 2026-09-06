@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Render the grid
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Owns the tile signal and the metrics signal, and writes the grid custom properties")
   Component(tpl, "GridTileTemplateDirective", "Angular directive", "Holds the per-tile TemplateRef the host supplies")
   Component(metrics, "GridMetrics", "TypeScript type", "columns, columnWidth, rowHeight, and gap for the current render")
@@ -12,11 +12,11 @@ Container_Boundary(components, "components library") {
   Component(rect, "rectOf", "TypeScript function", "Converts a tile geometry to a pixel rectangle for L2-002")
 }
 
-Container_Ext(domain, "domain library", "Angular library", "Supplies the layout and the per-tile template")
+Container_Ext(app, "src/e2e-app", "Angular application", "Supplies the layout and the per-tile template")
 System_Ext(browser, "Desktop browser", "Layout and compositing")
 
-Rel(domain, grid, "Binds layout, columns, rowHeight, and gap")
-Rel(domain, tpl, "Declares the per-tile template on")
+Rel(app, grid, "Binds layout, columns, rowHeight, and gap")
+Rel(app, tpl, "Declares the per-tile template on")
 Rel(grid, coerce, "Coerces configuration with")
 Rel(grid, normalize, "Repairs the supplied layout with")
 Rel(grid, metrics, "Publishes")

@@ -14,10 +14,10 @@ skinparam package {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-box "Frontend - domain library" #D1FADF
-  participant "DashboardComponent" as dashboard
+box "Application - e2e-app" #E0F2FE
+  participant "DashboardPage" as dashboard
 end box
-box "Frontend - components library" #ECFDF3
+box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "normalizeLayout" as normalize
   participant "clampTile" as clamp

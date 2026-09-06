@@ -26,7 +26,7 @@ saves on every emission would write in a loop forever.
 ## Description
 
 The pipeline is one pure function in
-`frontend/projects/components/src/lib/grid/normalize-layout.ts`, supported by two smaller
+`src/qbc-grid/grid/normalize-layout.ts`, supported by two smaller
 ones.
 
 - **`normalizeLayout(supplied, columns)`** — returns a `LayoutRepair`. It applies four

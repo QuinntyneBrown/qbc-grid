@@ -3,15 +3,15 @@
 LAYOUT_WITH_LEGEND()
 title Components - Project tile content
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Tracks tiles by id and instantiates the host template once per tile")
   Component(tpl, "GridTileTemplateDirective", "Angular directive", "Captures the TemplateRef the host declares")
   Component(ctx, "GridTileContext", "TypeScript type", "The tile handed to the template as the implicit value")
   Component(outlet, "tile outlet", "Template element", "ngTemplateOutlet instance, repositioned but never re-created")
 }
 
-Container_Boundary(domainlib, "domain library") {
-  Component(dash, "DashboardComponent", "Angular standalone component", "Declares the per-tile template")
+Container_Boundary(applib, "src/e2e-app") {
+  Component(dash, "DashboardPage", "Angular standalone component", "Declares the per-tile template")
   Component(widget, "Telemetry widget", "Angular component", "Host content whose state survives a move")
 }
 

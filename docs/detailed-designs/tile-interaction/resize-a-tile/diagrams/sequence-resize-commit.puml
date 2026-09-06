@@ -15,7 +15,7 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Dashboard operator" as actor
-box "Frontend - components library" #ECFDF3
+box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "GridPointerSession" as session
   participant "spanAt" as spanat
@@ -23,8 +23,8 @@ box "Frontend - components library" #ECFDF3
   participant "canPlace" as canplace
   participant "GridFrameScheduler" as scheduler
 end box
-box "Frontend - domain library" #D1FADF
-  participant "DashboardComponent" as dashboard
+box "Application - e2e-app" #E0F2FE
+  participant "DashboardPage" as dashboard
 end box
 box "Platform - desktop browser" #FFF4E5
   participant "DOM and compositor" as dom

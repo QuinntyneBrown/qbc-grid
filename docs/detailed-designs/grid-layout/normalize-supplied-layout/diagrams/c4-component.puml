@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Normalize a supplied layout
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Runs repair on every layout input and emits a correction once")
   Component(normalize, "normalizeLayout", "TypeScript function", "The ordered repair pipeline of L2-025")
   Component(clamp, "clampTile", "TypeScript function", "Coerces numbers and clamps span and coordinates into range")
@@ -11,12 +11,12 @@ Container_Boundary(components, "components library") {
   Component(repair, "LayoutRepair", "TypeScript type", "The repaired tiles and whether anything changed")
 }
 
-Container_Ext(domain, "domain library", "Angular library", "Supplies a stored layout of unknown quality")
+Container_Ext(app, "src/e2e-app", "Angular application", "Supplies a stored layout of unknown quality")
 
-Rel(domain, grid, "Binds a stored layout to")
+Rel(app, grid, "Binds a stored layout to")
 Rel(grid, normalize, "Repairs with")
 Rel(normalize, clamp, "Coerces and clamps each record with")
 Rel(normalize, overlap, "Detects residual collisions with")
 Rel(normalize, repair, "Returns")
-Rel(grid, domain, "Emits the repaired layout once through layoutChange")
+Rel(grid, app, "Emits the repaired layout once through layoutChange")
 @enduml

@@ -15,7 +15,7 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Dashboard operator" as actor
-box "Frontend - components library" #ECFDF3
+box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "GridPointerSession" as session
   participant "canPlace" as canplace

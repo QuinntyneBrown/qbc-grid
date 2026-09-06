@@ -33,8 +33,8 @@ layout that needed repair, which is the subject of
 
 ## Description
 
-The slice runs from the grid's output through the `domain` library to the `api` library's
-service contract.
+The slice runs from the grid's output, through the application that hosts it, to the
+storage behind its service token. Every part of it below the grid lives in `src/e2e-app`.
 
 - **`GridComponent.layoutChange`** — Angular output carrying `GridTile[]`. It fires from
   the private `commit` method and from nowhere else, which is why the "exactly once per
@@ -45,12 +45,12 @@ service contract.
   nothing. When something did change, it builds a fresh array of fresh records before
   emitting: handing out the grid's own array would let a host mutate the grid's state by
   accident, and a copy makes the emitted value inert.
-- **`DashboardPage`** — the routed page in the application project, and the participant
-  every sequence in this tree starts from. It owns the route, the `live` and `edit` toggle,
-  and the controls that add and remove a tile; it composes `DashboardComponent` and holds no
-  layout of its own. It is the demonstration host the acceptance tests drive, and it is
-  where the responsibilities the repository assigns to an application project — routing and
-  page-level composition — are met.
+- **`DashboardPage`** — the routed page in `src/e2e-app`, and the participant every
+  sequence in this tree starts from. It owns the route, the `live` and `edit` toggle, the
+  controls that add and remove a tile, and the layout itself: it injects `DASHBOARD_SERVICE`,
+  binds what it loads into `qbc-grid`, and calls `save` when the layout settles. It holds
+  that layout in a signal rather than an observable, since a layout is state rather than a
+  stream. It is the demonstration host the acceptance tests drive.
 
   It is served at three routes that differ only in which token stylesheets the document
   carries, so that the criteria in
@@ -77,19 +77,14 @@ service contract.
   instrumentation for its own tests, and because the saved layout cannot substitute — the
   coalescing described below means the number of saves and the number of emissions differ
   by design.
-- **`DashboardComponent`** — in the `domain` library. It injects `DASHBOARD_SERVICE`,
-  binds the loaded layout into `qbc-grid`, and calls `save` when the layout settles. It
-  holds the layout in a signal rather than an observable, since the layout is state rather
-  than a stream.
-
   Saving on settle rather than on every emission is the host's decision, not the library's.
   The grid emits once per committed change, which is the honest cadence for a change
   notification; a held arrow key repeats at the keyboard's rate, and writing storage
   synchronously thirty times a second would put the persistence of a demonstration app
-  inside the frame budget the grid works to protect. `DashboardComponent` therefore
-  coalesces: a burst of commits produces one write once the burst stops.
-- **`IDashboardService`** — the contract in the `api` library, declaring `load` and
-  `save`. It carries no HTTP type, so `domain` stays free of transport concerns. `load`
+  inside the frame budget the grid works to protect. The page therefore coalesces: a burst
+  of commits produces one write once the burst stops.
+- **`IDashboardService`** — the contract, declaring `load` and `save`, in the application
+  that consumes it. It names no storage mechanism, so the page stays free of one. `load`
   returns a signal rather than a resolved array, which browser storage could supply
   synchronously; the signal shape is what lets a later server-backed adapter start empty and
   fill when the response arrives. Its `readonly GridTile[]` is what the contract intends, not
@@ -142,8 +137,10 @@ the order they run in. And the production bundle never contains the mock, becaus
 that names it is not part of that build.
 
 The grid itself injects none of these. It takes a layout in and hands a layout out, which
-is what keeps `GridComponent` publishable from the `components` library with no
-application dependency.
+is what keeps `GridComponent` publishable from `src/qbc-grid` with no application
+dependency — and it is why there is no separate library between the page and the grid. A
+component whose whole job was to sit on the far side of that boundary would be a file
+justified by a folder rather than by a behaviour.
 
 ## Requirements
 
@@ -162,7 +159,7 @@ the [tree root](../../README.md#where-the-c4-levels-live).
 
 ### Components
 
-The grid emits into `DashboardComponent`, which reaches storage only through the
+The grid emits into `DashboardPage`, which reaches storage only through the
 `DASHBOARD_SERVICE` token. Two implementations satisfy the contract: the storage adapter
 in production and a deterministic mock under Playwright.
 
@@ -170,7 +167,7 @@ in production and a deterministic mock under Playwright.
 
 ### Class structure
 
-`DashboardComponent` depends on the token and the interface, never on a concrete adapter.
+`DashboardPage` depends on the token and the interface, never on a concrete adapter.
 `GridComponent` depends on neither.
 
 ![Class diagram for publishing and restoring the layout](diagrams/class-structure.png)

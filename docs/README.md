@@ -13,11 +13,27 @@ No code exists yet; everything here is specification and design.
 | [`specs/L1.md`](specs/L1.md) | 14 high-level requirements, and the scope boundaries |
 | [`specs/L2.md`](specs/L2.md) | 34 detailed requirements, 127 acceptance criteria |
 | [`detailed-designs/`](detailed-designs/) | 3 subsystems, 14 feature designs, 51 diagrams |
+| [`usability-performance-audit.md`](usability-performance-audit.md) | usability and performance findings, priorities, source evidence, and proposed acceptance scenarios |
 | [`tools/`](tools/) | the checks, and the harness that proves the checks work |
 
 Start at [`detailed-designs/README.md`](detailed-designs/README.md). It carries
 the shared C4 context and container views, the vocabulary every feature uses, and
 the testing seam.
+
+Code has not been written yet. When it is, it goes where
+[`angular/components`](https://github.com/angular/components) puts its own — every
+package and application a sibling under `src/`:
+
+| Path | Holds |
+|------|-------|
+| `src/qbc-grid` | the published library, a folder per feature, `public-api.ts` naming the exports |
+| `src/dev-app` | a manual harness, not published and not driven by any acceptance test |
+| `src/e2e-app` | the application the Playwright specifications drive |
+| `e2e/` | the page objects and the specifications themselves |
+| `design-system/` | the tokens, their gallery, and its own build |
+
+There is no `api` project and no `domain` project. A service reached through a
+token lives in the application that provides it; the library injects nothing.
 
 ## Checking the work
 

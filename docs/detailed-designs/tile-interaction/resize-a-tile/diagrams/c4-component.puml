@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Resize a tile
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Renders one corner handle per unlocked tile and commits the resized span")
   Component(handle, "resize handle", "Template element and stylesheet rule", "Bottom-right target of at least 16 px by 16 px")
   Component(session, "GridPointerSession", "TypeScript class", "Runs the resize gesture with kind of resize")

@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Hold the frame budget
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(session, "GridPointerSession", "TypeScript class", "Measures the grid rectangle once at gesture start and never again")
   Component(scheduler, "GridFrameScheduler", "TypeScript class", "Collapses many pointer events into one write per animation frame")
   Component(cellat, "cellAt", "TypeScript function", "Snaps from cached numbers, reading no element")

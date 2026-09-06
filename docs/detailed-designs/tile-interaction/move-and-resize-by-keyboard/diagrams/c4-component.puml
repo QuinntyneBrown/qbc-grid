@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Move and resize by keyboard
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Routes key events from the focused tile and commits an accepted candidate")
   Component(keys, "gridKeyboardCandidate", "TypeScript function", "Maps a key event to a candidate cell for L2-027 and L2-028")
   Component(clamp, "clampTile", "TypeScript function", "Applies the tile size limits to a resize candidate")

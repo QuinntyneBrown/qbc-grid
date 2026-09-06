@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Lock a tile
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Tests locked before starting any gesture and before setting a tab index")
   Component(tile, "GridTile", "TypeScript type", "Carries the optional locked flag")
   Component(session, "GridPointerSession", "TypeScript class", "Never receives a start call for a locked tile")
@@ -12,9 +12,9 @@ Container_Boundary(components, "components library") {
   Component(styles, "grid.css", "Component stylesheet", "Suppresses the handle and cursor on a locked tile")
 }
 
-Container_Ext(domain, "domain library", "Angular library", "Supplies the locked flag in the layout")
+Container_Ext(app, "src/e2e-app", "Angular application", "Supplies the locked flag in the layout")
 
-Rel(domain, grid, "Binds a layout carrying locked to")
+Rel(app, grid, "Binds a layout carrying locked to")
 Rel(grid, tile, "Reads locked from")
 Rel(grid, session, "Starts a gesture only for an unlocked tile through")
 Rel(grid, keys, "Dispatches key events for an unlocked tile to")

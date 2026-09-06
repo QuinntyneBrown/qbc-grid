@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title Components - Move a tile
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Routes pointer events and commits the shadow geometry on release")
   Component(session, "GridPointerSession", "TypeScript class", "Owns one gesture: threshold, capture, offset, and teardown")
   Component(scheduler, "GridFrameScheduler", "TypeScript class", "Collapses pointer events to one style write per animation frame")

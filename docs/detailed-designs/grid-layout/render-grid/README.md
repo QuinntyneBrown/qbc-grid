@@ -26,9 +26,8 @@ from producing a division by zero or an unrenderable grid.
 
 ## Description
 
-The feature lives in the `components` library, at
-`frontend/projects/components/src/lib/grid/`. One file holds one type, as the
-repository requires.
+The feature lives in the published library, at `src/qbc-grid/grid/`. One file holds one
+type, as the repository requires.
 
 - **`GridComponent`** — Angular standalone component with selector `qbc-grid`. It holds
   the signal inputs `layout`, `columns`, `rowHeight`, `gap`, and `mode`, and the output

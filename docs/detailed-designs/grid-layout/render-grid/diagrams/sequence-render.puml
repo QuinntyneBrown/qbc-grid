@@ -15,13 +15,10 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Dashboard operator" as actor
-box "Frontend - qbc-grid application" #E0F2FE
+box "Application - e2e-app" #E0F2FE
   participant "DashboardPage" as page
 end box
-box "Frontend - domain library" #D1FADF
-  participant "DashboardComponent" as dashboard
-end box
-box "Frontend - components library" #ECFDF3
+box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "coerceGridOptions" as coerce
   participant "normalizeLayout" as normalize
@@ -32,8 +29,7 @@ box "Platform - desktop browser" #FFF4E5
 end box
 
 actor -> page : Open the dashboard
-page -> dashboard : Render with the saved layout
-dashboard -> grid : Bind layout, columns, rowHeight, gap, mode
+page -> grid : Bind layout, columns, rowHeight, gap, mode
 grid -> coerce : Coerce configuration per L2-004
 coerce --> grid : GridMetrics with columns, rowHeight, gap
 grid -> dom : Measure the host content width once

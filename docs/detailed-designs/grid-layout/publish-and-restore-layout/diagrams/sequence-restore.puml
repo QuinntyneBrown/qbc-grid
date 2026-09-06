@@ -15,16 +15,11 @@ skinparam package {
   BackgroundColor #F9FAFB
 }
 actor "Dashboard operator" as actor
-box "Frontend - qbc-grid application" #E0F2FE
+box "Application - e2e-app" #E0F2FE
   participant "DashboardPage" as page
-end box
-box "Frontend - domain library" #D1FADF
-  participant "DashboardComponent" as dashboard
-end box
-box "Frontend - api library" #E0F2FE
   participant "DASHBOARD_SERVICE" as service
 end box
-box "Frontend - components library" #ECFDF3
+box "Library - src/qbc-grid" #ECFDF3
   participant "GridComponent" as grid
   participant "normalizeLayout" as normalize
 end box
@@ -33,20 +28,19 @@ box "Platform - desktop browser" #FFF4E5
 end box
 
 actor -> page : Open the dashboard
-page -> dashboard : Render
-dashboard -> service : load()
+page -> service : load()
 service -> store : Read the saved JSON
 store --> service : Saved layout, or nothing
-service --> dashboard : Signal of tile records
-dashboard -> grid : Bind the loaded layout
+service --> page : Signal of tile records
+page -> grid : Bind the loaded layout
 grid -> normalize : Repair per L2-025
 alt the layout needed no repair
   normalize --> grid : Same tiles and repaired false
   grid -> grid : Emit nothing per L2-024
 else the layout needed repair
   normalize --> grid : Repaired tiles and repaired true
-  grid --> dashboard : Emit the repaired layout once per L2-026
-  dashboard -> service : save(repaired layout)
+  grid --> page : Emit the repaired layout once per L2-026
+  page -> service : save(repaired layout)
 end
 grid --> actor : Present the restored arrangement
 @enduml

@@ -5,12 +5,12 @@
 `qbc-grid` is meant to be installed by applications that have nothing to do with this
 repository. That ambition sets two constraints, and this feature is both of them.
 
-The first is **dependency direction**. The grid lives in the `components` library, whose
-place in the workspace is the leaf: it imports nothing from the application, nothing from
-the `api` or `domain` libraries, and injects no service defined outside itself. Angular is
+The first is **dependency direction**. The grid lives at `src/qbc-grid`, whose place in the
+repository is the leaf: it imports nothing from an application and injects no service
+defined outside itself. Angular is
 a peer dependency rather than a dependency, so a consumer's Angular is the only Angular in
-the tree. A component that discovers it needs a service does not gain one here — it moves
-to `domain`, and stays out of the published package.
+the tree. A component that discovers it needs a service has found an application concern, and the
+concern moves to the application rather than the service moving into the library.
 
 The second is **restyling without forking**. Every colour, dimension, radius, elevation,
 border width, and transition duration in the grid's stylesheets is read as a
@@ -20,7 +20,7 @@ hard-coded hex or pixel value in a component stylesheet is a defect, because it 
 no consumer can reach.
 
 The design system owns those tokens, and it is a deliverable rather than a folder. It sits
-at `design-system/`, beside `backend/` and `frontend/`, with its own package, its own
+at `design-system/`, beside `src/`, with its own package, its own
 tests, and its own static site, and it carries no runtime dependency on the application.
 Its copy of the tokens is authoritative; the front end mirrors them. When the grid needs a
 value that has no token, the token is added to the design system first.
@@ -207,7 +207,7 @@ a level-1 (L1) requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-033` | `L1-014` | The grid shall be published from the `components` library as standalone Angular components, shall import nothing from the application or from the `api` and `domain` libraries, shall inject no service defined outside the library, and shall declare Angular as a peer dependency. |
+| `L2-033` | `L1-014` | The grid shall be published from `src/qbc-grid` as standalone Angular components, shall import nothing from an application, shall inject no service defined outside the library, and shall declare Angular as a peer dependency. |
 | `L2-034` | `L1-014` | The grid stylesheets shall read every colour, spacing, radius, elevation, border width, and transition duration as a `var(--qbc-<role>)` custom property owned by the design system, and shall resolve both duration tokens to zero where the operator has asked for reduced motion. |
 
 ## Diagrams

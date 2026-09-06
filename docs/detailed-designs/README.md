@@ -49,10 +49,10 @@ design system supplies the tokens the grid reads for every visual value.
 
 ### Containers
 
-The application project composes the `domain` library, which reaches the layout
-store through the `DASHBOARD_SERVICE` token in the `api` library and renders the
-grid from the `components` library. The `components` library is the published
-deliverable and depends on nothing above it.
+`src/e2e-app` renders the grid, reaching its layout store through the
+`DASHBOARD_SERVICE` token it provides itself; `src/dev-app` renders the same
+library by hand. `src/qbc-grid` is the published deliverable and depends on
+neither of them.
 
 ![C4 container view for qbc-grid](diagrams/c4-container.png)
 
@@ -167,7 +167,7 @@ find the gesture swallowing it and would read the result as a defect in the grid
 A count answers the negatives and the exactly-once criteria; the payload answers the rest,
 such as `L2-013`, which asks that an emitted layout contain every tile with only the dragged
 one's `x` and `y` changed. The saved layout cannot stand in for either, because
-`DashboardComponent` coalesces its writes — after a burst of commits the number of saves and
+`DashboardPage` coalesces its writes — after a burst of commits the number of saves and
 the number of emissions deliberately differ.
 
 `L2-023` asks that a host mutating a record it received leave the grid unaffected, which
@@ -183,13 +183,15 @@ performance trace for the frame durations — not by anything the grid or the pa
 
 ## Deliberate exclusions
 
-`AGENTS.md` describes a .NET API, MediatR, and a `backend/` tree for this
-repository. The requirements in `docs/specs/` name no server-side behaviour, so
-this design introduces no backend. The layout is plain data that the grid emits;
-the `api` library persists it through a browser storage adapter bound to the
-`DASHBOARD_SERVICE` token, and a mock is bound in its place under Playwright. If a
-shared or multi-user dashboard is later required, that adapter is the single seam
-a .NET API would sit behind, and the grid itself would not change.
+The repository is an Angular library and the applications that exercise it, laid
+out as [`angular/components`](https://github.com/angular/components) lays out its
+own: every package and application a sibling under `src/`. There is no server, and
+no `api` or `domain` project between the grid and the page that hosts it. The
+layout is plain data the grid emits; `src/e2e-app` persists it through a browser
+storage adapter bound to the `DASHBOARD_SERVICE` token, and a mock is bound in its
+place under Playwright. If a shared or multi-user dashboard is later required,
+that adapter is the single seam a server would sit behind, and the grid itself
+would not change.
 
 The design also excludes collision resolution during interaction, touch input,
 nested grids, and breakpoint-driven column collapsing, each for the reason given

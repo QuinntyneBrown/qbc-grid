@@ -36,7 +36,7 @@ class GridComponent {
   +trackById(tile: GridTile): string
 }
 
-class DashboardComponent {
+class DashboardPage {
   +layout: Signal<readonly GridTile[]>
 }
 
@@ -49,7 +49,7 @@ GridComponent --> GridTileTemplateDirective : reads the template from
 GridComponent ..> GridTileContext : builds one per tile
 GridTileTemplateDirective --> GridTileContext : instantiates with
 GridTileContext --> GridTile : carries
-DashboardComponent ..> GridTileTemplateDirective : declares
-DashboardComponent --> TelemetryWidget : renders inside the template
+DashboardPage ..> GridTileTemplateDirective : declares
+DashboardPage --> TelemetryWidget : renders inside the template
 TelemetryWidget --> GridTile : reads
 @enduml

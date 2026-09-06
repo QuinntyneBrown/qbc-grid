@@ -26,7 +26,7 @@ conflict, so the addition is rejected and the layout is left alone.
 ## Description
 
 The feature adds two public methods to `GridComponent` and three pure functions beside
-it in `frontend/projects/components/src/lib/grid/`.
+it in `src/qbc-grid/grid/`.
 
 - **`GridComponent.addTile(request)`** — accepts an `AddTileRequest`, rejects a duplicate
   `id`, clamps the requested span, resolves a position, commits the new tile list, and
@@ -89,7 +89,7 @@ the [tree root](../../README.md#where-the-c4-levels-live).
 
 ### Components
 
-`GridComponent` exposes the two methods to the `domain` library and delegates every
+`GridComponent` exposes the two methods to the application and delegates every
 spatial decision to `clampTile`, `canPlace`, and `findFreeCell`.
 
 ![C4 component view for adding and removing tiles](diagrams/c4-component.png)

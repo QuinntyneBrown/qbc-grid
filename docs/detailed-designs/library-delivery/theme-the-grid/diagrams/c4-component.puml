@@ -8,7 +8,7 @@ Container_Boundary(ds, "design-system") {
   Component(site, "Token gallery", "Static site", "Renders every token and the grid states that use it")
 }
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(entry, "public-api.ts", "Library entry point", "Exports GridComponent, GridTileTemplateDirective, GridTile, GridMode, and GridShadow")
   Component(grid, "GridComponent", "Angular standalone component", "Injects no service defined outside the library")
   Component(styles, "grid.css", "Component stylesheet", "Reads every visual value as var(--qbc-<role>)")

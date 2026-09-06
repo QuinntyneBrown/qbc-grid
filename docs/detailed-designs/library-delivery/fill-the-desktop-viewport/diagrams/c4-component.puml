@@ -3,17 +3,17 @@
 LAYOUT_WITH_LEGEND()
 title Components - Fill the desktop viewport
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Publishes GridMetrics and writes the grid custom properties")
   Component(observer, "GridWidthObserver", "TypeScript class", "Wraps ResizeObserver on the grid host and reports the content width")
   Component(metrics, "GridMetrics", "TypeScript type", "columns, columnWidth, rowHeight, and gap")
   Component(styles, "grid.css", "Component stylesheet", "Derives every tile rectangle with calc from the custom properties")
 }
 
-Container_Ext(domain, "domain library", "Angular library", "Places the grid in a container of its own choosing")
+Container_Ext(app, "src/e2e-app", "Angular application", "Places the grid in a container of its own choosing")
 System_Ext(browser, "Desktop browser", "ResizeObserver, layout, and the compositor")
 
-Rel(domain, grid, "Sizes the container of")
+Rel(app, grid, "Sizes the container of")
 Rel(grid, observer, "Observes its host through")
 Rel(observer, browser, "Subscribes to", "ResizeObserver")
 Rel(browser, observer, "Reports content box width changes to")

@@ -3,15 +3,12 @@
 LAYOUT_WITH_LEGEND()
 title Components - Publish and restore the layout
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Emits a frozen copy of the layout on every committed change")
 }
 
-Container_Boundary(domainlib, "domain library") {
-  Component(dash, "DashboardComponent", "Angular standalone component", "Loads a layout on init and saves each emitted layout")
-}
-
-Container_Boundary(apilib, "api library") {
+Container_Boundary(applib, "src/e2e-app") {
+  Component(dash, "DashboardPage", "Angular standalone component", "Loads a layout on init and saves each settled layout")
   Component(contract, "IDashboardService", "TypeScript interface", "load and save contract for a dashboard layout")
   Component(token, "DASHBOARD_SERVICE", "Angular InjectionToken", "The only handle a consumer injects")
   Component(adapter, "DashboardService", "TypeScript class", "Production adapter over browser storage")

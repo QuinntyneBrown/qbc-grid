@@ -3,17 +3,17 @@
 LAYOUT_WITH_LEGEND()
 title Components - Switch the grid mode
 
-Container_Boundary(components, "components library") {
+Container_Boundary(components, "src/qbc-grid") {
   Component(grid, "GridComponent", "Angular standalone component", "Holds the mode input and derives every affordance from it")
   Component(mode, "GridMode", "TypeScript union type", "live or edit")
   Component(session, "GridPointerSession", "TypeScript class", "Holds the gesture in flight and cancels it on demand")
   Component(styles, "grid.css", "Component stylesheet", "Selects the cursor, handle, and focus ring on the mode attribute")
 }
 
-Container_Ext(domain, "domain library", "Angular library", "DashboardComponent, which owns the mode toggle")
+Container_Ext(app, "src/e2e-app", "Angular application", "DashboardPage, which owns the mode toggle")
 System_Ext(browser, "Desktop browser", "Focus order and pointer capture")
 
-Rel(domain, grid, "Binds mode to")
+Rel(app, grid, "Binds mode to")
 Rel(grid, mode, "Reads")
 Rel(grid, session, "Cancels the gesture in flight through")
 Rel(grid, styles, "Sets the data-mode attribute read by")
