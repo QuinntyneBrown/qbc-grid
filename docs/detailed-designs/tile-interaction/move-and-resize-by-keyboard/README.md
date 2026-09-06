@@ -84,8 +84,8 @@ announcement.
   window, and the one where the cost of missing it falls on somebody who has no other way to
   know where the tile ended up.
 - **`GridComponent.settling`** — the window during which the overlay stays visible after a
-  keyboard command, lasting `--qbc-duration-settle`, the same token the revert animation
-  uses. A keyboard command has no gesture duration of its own, so without the window
+  keyboard command. Its length is an interval the component keeps rather than a motion
+  token, so a request for reduced motion shortens the animations and leaves it alone. A keyboard command has no gesture duration of its own, so without the window
   [`reveal-the-grid`](../reveal-the-grid/) would flash the overlay for a single frame or
   not show it at all. A second command while the window is open extends it rather than
   opening another, so holding an arrow key reveals the grid once and hides it once, and the

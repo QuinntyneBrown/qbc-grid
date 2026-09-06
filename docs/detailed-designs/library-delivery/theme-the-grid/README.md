@@ -65,6 +65,13 @@ The slice is a package shape, an entry point, and a token catalogue.
   covered together, and a consumer adding a third transition from these tokens inherits the
   answer rather than having to remember it.
 
+  What these tokens do not measure is the settle window, which holds the overlay open across
+  a run of keyboard commands and gathers their announcements into one. That window is an
+  interval the component keeps, not a length of motion, and it survives a request for reduced
+  motion untouched. The two shared a token once, which put a request for less animation on
+  course to flash the overlay and split a burst of commands back into one announcement each —
+  breaking two accommodations for the operator most likely to have asked for the third.
+
   - **Expression** — `--qbc-elevation-resting`, `--qbc-elevation-drag`,
     `--qbc-layer-drag`, `--qbc-duration-fast`, `--qbc-duration-settle`, and
     `--qbc-easing-standard`. `--qbc-layer-drag` is the stacking level a tile takes while it
