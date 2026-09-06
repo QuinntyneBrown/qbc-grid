@@ -52,9 +52,9 @@ Four criteria state a container width and expect a column width to follow from i
 demonstration page therefore gives the grid the full width of the viewport, with no padding,
 no margin, and no chrome beside it, so a Playwright viewport set to the width a criterion
 names gives the grid a container of exactly that width, and the criterion's arithmetic is the
-grid's arithmetic. The width itself is not repeated here: a worked example copied into the
-design is a number with two homes and one of them goes stale, which is what happened to the
-figure that used to sit in this sentence. The library
+grid's arithmetic. The width itself is not repeated here. A worked
+example copied into the design is a value with two homes, and the copy is the one that goes
+stale. The library
 supports a host that pads its container — that is why
 [`reveal-the-grid`](../../tile-interaction/reveal-the-grid/) sets the overlay's background
 origin to the content box — and the demonstration page declines to, so a test never has to
