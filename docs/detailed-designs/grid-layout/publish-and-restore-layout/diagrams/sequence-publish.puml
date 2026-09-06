@@ -42,6 +42,8 @@ alt the geometry is unchanged
 else the geometry changed
   grid -> grid : Freeze one record per tile per L2-023
   grid --> dashboard : layoutChange with id, x, y, cols, rows, locked
+  dashboard -> dashboard : Coalesce, and wait for the commits to settle
+  note over dashboard : A held arrow key commits at the keyboard's repeat rate; one write follows the burst
   dashboard -> service : save(layout)
   service -> store : Write the layout as JSON
   store --> service : Written

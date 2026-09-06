@@ -39,10 +39,13 @@ loop for each record in order
   end
 end
 normalize --> grid : LayoutRepair with tiles and a repaired flag
+note over grid : Repair runs as the source computation of the tiles linked signal, which is pure and lazy
 alt repaired is false
   grid -> grid : Adopt the tiles and emit nothing per L2-026
 else repaired is true
   grid -> grid : Adopt the repaired tiles
+  grid -> grid : An effect observes the repaired flag and emits
+  note over grid : Emitting from inside the computation would fire when something first read it, or never
   grid --> dashboard : Emit the repaired layout exactly once per L2-026
   dashboard -> dashboard : Persist the correction
 end
