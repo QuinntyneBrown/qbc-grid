@@ -120,6 +120,30 @@ grid's published surface:
 | `data-qbc-emissions` | the demonstration page | how many layouts the grid has emitted since load |
 | `data-qbc-last-layout` | the demonstration page | the most recent emitted layout, as JSON |
 
+Seven criteria act through a control rather than a gesture — the host adds a tile, removes
+one by id, sets the mode, or mutates a record it was handed. Those controls belong to the
+demonstration page and carry hooks of their own, for the same reason the observations do: a
+page object binding a click to a button's text or a stylesheet class is a selector that
+breaks on a wording change or a restyle.
+
+| Attribute | Sits on | Drives |
+|-----------|---------|--------|
+| `data-qbc-mode-toggle` | the demonstration page | switching between `live` and `edit` |
+| `data-qbc-add-tile` | the demonstration page | adding a tile through the grid's `addTile` |
+| `data-qbc-remove-tile` | each tile's projected content | removing that tile by id |
+| `data-qbc-mutate-layout` | the demonstration page | mutating the last emitted layout in place |
+
+The remove control sits inside a tile's projected content rather than on the tile element,
+because the grid renders no chrome of its own. It earns its keep twice: it is how `L2-022`
+removes a tile, and it is the button inside a tile that `L2-009` requires to stay clickable
+in `edit` mode, so the arrangement under test is the one an operator would meet.
+
+`L2-007` asks for the mode to change while a drag is in progress, which pointer capture
+makes into a question of how. A dragging pointer is routed to the tile for as long as the
+gesture lasts, so a specification cannot reach the toggle with the same pointer. It
+activates the toggle from the keyboard instead, which is a real path an operator has and not
+a contrivance for the test.
+
 A count answers the negatives and the exactly-once criteria; the payload answers the rest,
 such as `L2-013`, which asks that an emitted layout contain every tile with only the dragged
 one's `x` and `y` changed. The saved layout cannot stand in for either, because
