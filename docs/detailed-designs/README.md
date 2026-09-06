@@ -64,8 +64,13 @@ something stable for a page object to hold on to. A page object written against 
 class names breaks at the next stylesheet change, and the acceptance criteria of 34
 requirements break with it.
 
-The grid therefore carries a small set of attributes that belong to its published surface.
-Changing one is a breaking change, as renaming an input would be.
+The grid therefore carries a small set of attributes and treats them as fixed. They are not
+part of the package's public API — no consumer names them, and the exported surface stays at
+the five entries [`theme-the-grid`](library-delivery/theme-the-grid/) lists. What depends on
+them is this repository's own page objects, so changing one breaks the acceptance suite
+rather than a consumer's build. That is a smaller blast radius than renaming an input and a
+larger one than renaming an internal class, and it is worth stating at its real size rather
+than borrowing the language of either.
 
 | Attribute | Sits on | Carries |
 |-----------|---------|---------|

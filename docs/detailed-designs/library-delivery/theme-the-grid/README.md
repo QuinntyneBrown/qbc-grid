@@ -35,6 +35,10 @@ The slice is a package shape, an entry point, and a token catalogue.
   `GridInteraction`, `GridMetrics`, and the pure layout functions are internal, because no
   consumer needs to name them to render a grid, add a tile, or read a layout — and every
   exported name is one the library then owes stability to.
+
+  The observation attributes in [the testing seam](../../README.md#the-testing-seam) are not
+  exports either. They are markup the grid emits, held stable for this repository's page
+  objects and named by nothing a consumer writes, so the count of five stands.
 - **`package.json`** — declares `@angular/core` and `@angular/common` as peer dependencies,
   no runtime dependencies, and `sideEffects: false`. It references no package from this
   workspace.
