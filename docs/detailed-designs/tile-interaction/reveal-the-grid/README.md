@@ -38,11 +38,42 @@ The overlay is one element, one derived signal, and a stylesheet rule.
   lasting `--qbc-duration-settle` and described in
   [`move-and-resize-by-keyboard`](../move-and-resize-by-keyboard/). A keyboard move has no
   gesture duration of its own, so without the window the overlay would flash.
-- **`grid.css`** — draws the structure with two `repeating-linear-gradient` layers. The
-  horizontal layer has a period of `columnWidth + gap` and paints a `gap`-wide line in
-  `--qbc-color-grid-line`; the vertical layer has a period of `rowHeight + gap`. Both
+- **`grid.css`** — draws the structure with two `repeating-linear-gradient` layers, whose
   periods come from the custom properties `GridComponent` already publishes for tile
-  positioning, so the overlay cannot fall out of step with the cells it describes.
+  positioning, so the overlay cannot fall out of step with the cells it describes:
+
+  ```css
+  background-origin: content-box;
+  background-image:
+    repeating-linear-gradient(to right,
+      transparent 0,
+      transparent var(--qbc-grid-column-width),
+      var(--qbc-color-grid-line) var(--qbc-grid-column-width),
+      var(--qbc-color-grid-line) calc(var(--qbc-grid-column-width) + var(--qbc-grid-gap))),
+    repeating-linear-gradient(to bottom,
+      transparent 0,
+      transparent var(--qbc-grid-row-height),
+      var(--qbc-color-grid-line) var(--qbc-grid-row-height),
+      var(--qbc-color-grid-line) calc(var(--qbc-grid-row-height) + var(--qbc-grid-gap)));
+  ```
+
+  What the overlay paints is the gutters, not the cell edges. A period runs one column wide
+  and then one gap wide, so the first line falls after the first column and the last column
+  ends flush with no trailing line — the same edges the tiles leave.
+
+  `background-origin` is `content-box` rather than the default padding box, because
+  `GridWidthObserver` measures the content box and every tile is positioned from that
+  origin. A host that gives the grid padding would otherwise see the overlay drift from the
+  tiles by exactly the padding, which is the kind of defect that looks like a rounding error
+  and is not one.
+
+  Two consequences follow from painting with gradients rather than elements, and both are
+  accepted rather than solved. Column width is fractional, so the lines land on fractional
+  device pixels and rasterize a little unevenly at some widths; the overlay is a guide for
+  the eye during a gesture, not a rule to measure against, and evening it out would mean the
+  per-cell elements this design rejects. And the two layers composite where they cross, so
+  `--qbc-color-grid-line` is defined as an opaque colour — a translucent override would
+  double-paint every intersection and stipple the overlay with darker dots.
 - **Fade** — the overlay's opacity transitions over `--qbc-duration-fast`, so the reveal
   reads as part of the gesture rather than as a flicker.
 

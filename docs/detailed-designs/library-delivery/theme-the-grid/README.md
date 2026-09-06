@@ -41,7 +41,12 @@ The slice is a package shape, an entry point, and a token catalogue.
 - **`qbc-tokens.css`** — the authoritative token file in `design-system/`, in three groups:
   - **Colour** — `--qbc-color-surface`, `--qbc-color-surface-raised`, `--qbc-color-border`,
     `--qbc-color-accent`, `--qbc-color-accent-soft`, `--qbc-color-danger`,
-    `--qbc-color-danger-soft`, `--qbc-color-grid-line`, `--qbc-color-focus`.
+    `--qbc-color-danger-soft`, `--qbc-color-grid-line`, `--qbc-color-focus`. One of these
+    carries a constraint beyond taste: `--qbc-color-grid-line` is expected to be opaque,
+    because the overlay paints its columns and rows as two gradient layers that composite
+    where they cross, and a translucent value would darken every intersection. The token is
+    a consumer's to change; a consumer changing it to a translucent colour gets a stippled
+    overlay, and [`reveal-the-grid`](../../tile-interaction/reveal-the-grid/) says why.
   - **Metric** — the four-step spacing scale `--qbc-space-1` through `--qbc-space-4`,
     `--qbc-radius-sm`, `--qbc-radius-md`, `--qbc-border-width-hairline`,
     `--qbc-border-width-emphasis`, and `--qbc-size-handle`, the resize handle's hit area.

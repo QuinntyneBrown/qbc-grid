@@ -67,6 +67,15 @@ The threshold is 3 px. Below it there is no drag at all, and the pointer sequenc
 an ordinary click, which is what lets a button inside a tile stay clickable in `edit` mode.
 Pointer capture is requested only once the threshold is crossed, for the same reason.
 
+Two of the browser's own gestures compete with this one, and both are suppressed for the
+duration of a gesture rather than permanently. Dragging across a tile that holds text
+selects that text, painting a highlight through the whole drag; and a tile holding an image
+or a link starts the browser's native drag on the same press. So the grid sets
+`user-select: none` on its host and cancels `dragstart` while a session is live, keyed off
+the state that already shows the overlay. Suppressing either one permanently would take
+selection away from projected content that has every right to it — a tile holding a table
+of limits is there to be read and copied.
+
 Pointer Events are used because they are one API for the mouse across every target
 browser, not because the grid reaches for the touch and pen inputs they also carry. The
 grid sets no `touch-action` rule and adapts no hit target for a fingertip, so a touch drag

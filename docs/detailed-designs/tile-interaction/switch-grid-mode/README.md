@@ -43,6 +43,14 @@ Mode is a single input on `GridComponent`, and everything else derives from it.
   and the focus ring off a `data-mode` attribute written on the host. Presenting the
   affordances in CSS rather than in a template branch means the mode switch is one
   attribute write, not a re-render of every tile.
+
+  The focus ring hangs on `:focus-visible`, not `:focus`. A tile is focusable so that
+  [`move-and-resize-by-keyboard`](../move-and-resize-by-keyboard/) has somewhere to send
+  its commands, and it is also the surface a pointer presses to start a drag. Under
+  `:focus` every drag would leave a ring behind on the tile it just dropped, on a dashboard
+  whose whole point is being looked at. `:focus-visible` shows the ring to the keyboard and
+  withholds it from the pointer, which is the behaviour `L2-006` describes and the reason
+  the distinction is worth naming.
 - **`GridPointerSession`** — holds the gesture in flight as a `GridInteraction` value and
   exposes `cancel()`. Because the gesture is a value beside the committed tile list rather
   than a mutation of it, cancelling is discarding that value; no undo is needed.
