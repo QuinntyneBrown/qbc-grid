@@ -43,6 +43,13 @@ class MockDashboardService {
   +save(layout: readonly GridTile[]): void
 }
 
+class DashboardPage {
+  +mode: Signal<GridMode>
+  +toggleMode(): void
+  +onAddTile(): void
+  +onRemoveTile(id: string): void
+}
+
 class DashboardComponent {
   -service: IDashboardService
   +layout: Signal<readonly GridTile[]>
@@ -55,6 +62,7 @@ class DASHBOARD_SERVICE <<InjectionToken>> {
 DashboardService ..|> IDashboardService
 MockDashboardService ..|> IDashboardService
 DASHBOARD_SERVICE ..> IDashboardService : provides
+DashboardPage --> DashboardComponent : composes
 DashboardComponent --> DASHBOARD_SERVICE : injects
 DashboardComponent --> GridComponent : binds layout to
 GridComponent --> "*" GridTile : emits

@@ -45,18 +45,44 @@ service contract.
   nothing. When something did change, it builds a fresh array of fresh records before
   emitting: handing out the grid's own array would let a host mutate the grid's state by
   accident, and a copy makes the emitted value inert.
+- **`DashboardPage`** — the routed page in the application project, and the participant
+  every sequence in this tree starts from. It owns the route, the `live` and `edit` toggle,
+  and the controls that add and remove a tile; it composes `DashboardComponent` and holds no
+  layout of its own. It is the demonstration host the acceptance tests drive, and it is
+  where the responsibilities the repository assigns to an application project — routing and
+  page-level composition — are met.
 - **`DashboardComponent`** — in the `domain` library. It injects `DASHBOARD_SERVICE`,
-  binds the loaded layout into `qbc-grid`, and calls `save` on each emission. It holds the
-  layout in a signal rather than an observable, since the layout is state rather than a
-  stream.
+  binds the loaded layout into `qbc-grid`, and calls `save` when the layout settles. It
+  holds the layout in a signal rather than an observable, since the layout is state rather
+  than a stream.
+
+  Saving on settle rather than on every emission is the host's decision, not the library's.
+  The grid emits once per committed change, which is the honest cadence for a change
+  notification; a held arrow key repeats at the keyboard's rate, and writing storage
+  synchronously thirty times a second would put the persistence of a demonstration app
+  inside the frame budget the grid works to protect. `DashboardComponent` therefore
+  coalesces: a burst of commits produces one write once the burst stops.
 - **`IDashboardService`** — the contract in the `api` library, declaring `load` and
-  `save`. It carries no HTTP type, so `domain` stays free of transport concerns.
+  `save`. It carries no HTTP type, so `domain` stays free of transport concerns. `load`
+  returns a signal rather than a resolved array, which browser storage could supply
+  synchronously; the signal shape is what lets a later server-backed adapter start empty and
+  fill when the response arrives. The grid needs no knowledge of that: a layout arriving
+  late is an ordinary change of the `layout` input, and an empty layout on the way there
+  needs no repair and emits nothing.
 - **`DASHBOARD_SERVICE`** — the `InjectionToken` every consumer injects. The interface,
   the token, and each implementation live in separate files.
 - **`DashboardService`** — the production adapter. It reads and writes the layout as JSON
   in browser storage, and converts the stored value to a signal at the boundary.
 - **`MockDashboardService`** — the adapter bound under Playwright, returning a fixed
   layout so an acceptance test never depends on stored state.
+
+The binding happens at composition and nowhere else. `app.config.ts` provides
+`DASHBOARD_SERVICE` with `DashboardService`; an `e2e` build configuration replaces that one
+file with `app.config.e2e.ts`, which provides the same token with `MockDashboardService`,
+and Playwright runs against that build. Two properties follow. A test cannot reach browser
+storage even by accident, so specifications do not depend on each other's leftovers or on
+the order they run in. And the production bundle never contains the mock, because the file
+that names it is not part of that build.
 
 The grid itself injects none of these. It takes a layout in and hands a layout out, which
 is what keeps `GridComponent` publishable from the `components` library with no
