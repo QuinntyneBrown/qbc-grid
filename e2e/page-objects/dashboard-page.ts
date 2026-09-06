@@ -283,6 +283,40 @@ export class DashboardPageObject {
     );
   }
 
+  /** The value a projected widget took at construction, so a rebuild can be told from a move. */
+  async widgetInstanceOf(id: string): Promise<string | null> {
+    return this.tile(id).locator('[data-qbc-widget-instance]').getAttribute('data-qbc-widget-instance');
+  }
+
+  async typeInWidget(id: string, text: string): Promise<void> {
+    await this.tile(id).locator('[data-qbc-widget-field]').fill(text);
+  }
+
+  async widgetFieldValue(id: string): Promise<string> {
+    return this.tile(id).locator('[data-qbc-widget-field]').inputValue();
+  }
+
+  async scrollWidget(id: string, top: number): Promise<void> {
+    await this.tile(id)
+      .locator('[data-qbc-widget-scroll]')
+      .evaluate((element, offset) => {
+        element.scrollTop = offset;
+      }, top);
+  }
+
+  async widgetScrollTop(id: string): Promise<number> {
+    return this.tile(id)
+      .locator('[data-qbc-widget-scroll]')
+      .evaluate((element) => element.scrollTop);
+  }
+
+  /** Whether a hostile string reached the DOM as markup rather than as text. */
+  async scriptExecuted(): Promise<boolean> {
+    return this.page.evaluate(
+      () => (window as unknown as { __qbcExecuted?: boolean }).__qbcExecuted === true,
+    );
+  }
+
   /** Whether the focused tile is drawing the focus indicator. */
   async focusRingVisible(): Promise<boolean> {
     return this.page.evaluate(() => {
@@ -339,11 +373,36 @@ export class DashboardPageObject {
     await this.dragTileBy(id, columns * (await this.columnPitch()), 0);
   }
 
-  /** Presses a tile at its centre, without yet moving far enough to begin a drag. */
+  /**
+   * Presses the tile's own surface, without yet moving far enough to begin a drag.
+   *
+   * A press that lands on a control or a field belongs to that descendant, so this finds a
+   * point the grid actually owns rather than assuming the centre is bare. On a tile full of
+   * widgets the centre rarely is, which is the arrangement an operator meets.
+   */
   async pressTile(id: string): Promise<void> {
-    const box = await this.tile(id).boundingBox();
-    if (box === null) throw new Error(`No box for tile ${id}`);
-    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const point = await this.tile(id).evaluate((tile) => {
+      const box = tile.getBoundingClientRect();
+      const interactive =
+        'button, input, select, textarea, a[href], [contenteditable], [role="button"], [role="slider"], [role="textbox"]';
+      const candidates = [
+        [0.5, 0.5],
+        [0.95, 0.06],
+        [0.5, 0.06],
+        [0.03, 0.5],
+        [0.97, 0.97],
+      ];
+      for (const [across, down] of candidates) {
+        const x = box.left + box.width * across!;
+        const y = box.top + box.height * down!;
+        const under = document.elementFromPoint(x, y);
+        if (under?.closest('[data-qbc-tile]') !== tile) continue;
+        if (under.closest(interactive) !== null) continue;
+        return { x, y };
+      }
+      throw new Error('No bare surface on this tile to press');
+    });
+    await this.page.mouse.move(point.x, point.y);
     await this.page.mouse.down();
   }
 

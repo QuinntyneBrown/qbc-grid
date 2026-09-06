@@ -23,12 +23,14 @@
     [mode]="mode()"
     (layoutChange)="onLayoutChange($event)"
   >
-    <div *qbcGridTile="let tile" class="widget">
-      <span class="widget__label">{{ tile.label ?? tile.id }}</span>
-      <button type="button" data-qbc-lock-toggle (click)="toggleLock(tile.id)">
-        {{ tile.locked ? 'Unlock' : 'Lock' }}
-      </button>
-      <button type="button" data-qbc-remove-tile (click)="onRemoveTile(tile.id)">Remove</button>
+    <div *qbcGridTile="let tile" class="tile-content">
+      <div class="tile-content__controls">
+        <button type="button" data-qbc-lock-toggle (click)="toggleLock(tile.id)">
+          {{ tile.locked ? 'Unlock' : 'Lock' }}
+        </button>
+        <button type="button" data-qbc-remove-tile (click)="onRemoveTile(tile.id)">Remove</button>
+      </div>
+      <app-telemetry-widget [tile]="tile" />
     </div>
   </qbc-grid>
 }

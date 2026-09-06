@@ -1,0 +1,11 @@
+<div class="widget" [attr.data-qbc-widget-instance]="instance">
+  <span class="widget__label">{{ tile().label ?? tile().id }}</span>
+
+  <input class="widget__field" type="text" data-qbc-widget-field aria-label="Note" />
+
+  <div class="widget__readings" data-qbc-widget-scroll tabindex="-1">
+    @for (line of lines; track line) {
+      <p>{{ line }}</p>
+    }
+  </div>
+</div>

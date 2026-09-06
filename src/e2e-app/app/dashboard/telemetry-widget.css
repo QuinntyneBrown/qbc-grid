@@ -1,0 +1,28 @@
+/* A component element is inline until it is told otherwise, and a percentage height inside
+   an inline box resolves to nothing — which leaves the readings unscrollable. */
+:host {
+  display: block;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.widget {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  block-size: 100%;
+  min-block-size: 0;
+  padding: var(--qbc-space-2, 8px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.widget__readings {
+  overflow: auto;
+  flex: 1;
+  min-block-size: 20px;
+}
+
+.widget__readings p {
+  margin: 0;
+}

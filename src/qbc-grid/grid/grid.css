@@ -45,13 +45,25 @@
   --tile-left: calc(var(--qbc-tile-x) * (var(--qbc-grid-column-width) + var(--qbc-grid-gap)));
   --tile-top: calc(var(--qbc-tile-y) * (var(--qbc-grid-row-height) + var(--qbc-grid-gap)));
 
-  inline-size: calc(
-    var(--qbc-tile-cols) * var(--qbc-grid-column-width) +
-      (var(--qbc-tile-cols) - 1) * var(--qbc-grid-gap)
+  /*
+   * A resize follows the pointer in pixels, so it overrides the cell arithmetic while the
+   * gesture runs. The fallback is that arithmetic, which is what a move and a resting tile
+   * both use: writing `auto` here instead would collapse every dragged tile to its content
+   * and reset whatever its projected widgets were holding.
+   */
+  inline-size: var(
+    --qbc-drag-width,
+    calc(
+      var(--qbc-tile-cols) * var(--qbc-grid-column-width) +
+        (var(--qbc-tile-cols) - 1) * var(--qbc-grid-gap)
+    )
   );
-  block-size: calc(
-    var(--qbc-tile-rows) * var(--qbc-grid-row-height) +
-      (var(--qbc-tile-rows) - 1) * var(--qbc-grid-gap)
+  block-size: var(
+    --qbc-drag-height,
+    calc(
+      var(--qbc-tile-rows) * var(--qbc-grid-row-height) +
+        (var(--qbc-tile-rows) - 1) * var(--qbc-grid-gap)
+    )
   );
 
   /*
@@ -205,9 +217,6 @@
 }
 
 .qbc-grid__tile--dragging {
-  /* A resize follows the pointer in pixels, as a move follows it in offset. */
-  inline-size: var(--qbc-drag-width, auto);
-  block-size: var(--qbc-drag-height, auto);
   z-index: var(--qbc-layer-drag, 10);
   box-shadow: var(--qbc-elevation-drag, 0 8px 24px rgb(0 0 0 / 0.55));
   will-change: transform;

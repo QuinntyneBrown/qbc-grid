@@ -8,6 +8,7 @@ import {
 import { GridComponent, GridMode, GridTile, GridTileTemplateDirective } from 'qbc-grid';
 
 import { DASHBOARD_SERVICE } from './dashboard-service.token';
+import { TelemetryWidget } from './telemetry-widget';
 
 /**
  * A URL parameter arrives as text and the grid's input takes a number, so the page
@@ -24,7 +25,7 @@ function numberParam(params: URLSearchParams, name: string): number {
 /** The one screen the acceptance suite drives. */
 @Component({
   selector: 'app-dashboard',
-  imports: [GridComponent, GridTileTemplateDirective],
+  imports: [GridComponent, GridTileTemplateDirective, TelemetryWidget],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

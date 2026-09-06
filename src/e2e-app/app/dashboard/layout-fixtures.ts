@@ -87,6 +87,25 @@ export const layoutFixtures: Record<string, unknown> = {
     { id: 'blank', x: 3, y: 0, cols: 3, rows: 2, label: '   ' },
   ],
 
+  /** A label and an id carrying markup, which reach the DOM as text or not at all. */
+  hostile: [
+    {
+      id: '<img src=x onerror=window.__qbcExecuted=true>',
+      x: 0,
+      y: 0,
+      cols: 4,
+      rows: 2,
+    },
+    {
+      id: 'labelled',
+      x: 4,
+      y: 0,
+      cols: 4,
+      rows: 2,
+      label: '<img src=x onerror=window.__qbcExecuted=true>',
+    },
+  ],
+
   /** A clean layout carrying metadata that has to survive a round trip. */
   metadata: [
     { id: 'attitude', x: 0, y: 0, cols: 3, rows: 2, label: 'Attitude', minCols: 2, maxRows: 4 },

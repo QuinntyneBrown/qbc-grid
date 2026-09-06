@@ -18,10 +18,16 @@
   padding: 8px;
 }
 
-.widget {
+.tile-content {
   display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 8px;
-  padding: var(--qbc-space-2, 8px);
+  flex-direction: column;
+  block-size: 100%;
+  min-block-size: 0;
+  box-sizing: border-box;
+}
+
+.tile-content__controls {
+  display: flex;
+  gap: 4px;
+  padding: var(--qbc-space-1, 4px);
 }
