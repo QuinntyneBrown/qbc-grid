@@ -40,7 +40,8 @@ grid -> session : track(event)
 session -> session : Travel exceeds the 3 px threshold per L2-009
 session -> dom : setPointerCapture and show the overlay per L2-019
 session -> dom : Raise the tile with the drag elevation and its compositor layer per L2-010
-note over session, dom : Applied once here and removed once at the end, never per frame
+session -> dom : Suppress selection and cancel dragstart for the length of the gesture
+note over session, dom : All three applied once here and dropped once at the end, never per frame
 loop for each further pointermove
   grid -> session : track(event)
   session -> cellat : Snap the lifted rectangle, clamped to the grid per L2-011
@@ -53,7 +54,7 @@ end
 actor -> dom : Release the pointer over the free cell
 dom -> grid : pointerup
 grid -> session : release()
-session -> dom : releasePointerCapture, drop the elevation and layer, hide the overlay and shadow
+session -> dom : releasePointerCapture, restore selection, drop the elevation and layer, hide the overlay and shadow
 session --> grid : Target cell
 grid -> grid : Adopt the target cell per L2-013
 alt the target cell differs from the origin cell

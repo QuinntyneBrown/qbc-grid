@@ -36,8 +36,11 @@ grid -> grid : Derive editable, leaving every geometry unchanged per L2-006
 grid -> dom : Set data-mode of edit on the host
 grid -> dom : Give each unlocked tile tabindex 0 in row-major order per L2-006
 grid -> dom : Give each locked tile tabindex -1 per L2-008
-styles -> dom : Show the move cursor, the resize handle, and the focus ring
+styles -> dom : Show the move cursor and the resize handle
+note over styles, dom : No ring yet; nothing is focused, and :focus-visible withholds it from the pointer
 dom --> actor : Present the editable dashboard
 actor -> dom : Press Tab
-dom --> actor : Move focus through the unlocked tiles in row-major order
+dom -> styles : Focus arrives from the keyboard, so :focus-visible matches
+styles -> dom : Draw the focus ring per L2-006
+dom --> actor : Move focus through the unlocked tiles in row-major order, ringing each as it is reached
 @enduml
