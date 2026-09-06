@@ -88,6 +88,18 @@ The grid's own layout custom properties — `--qbc-grid-column-width`, `--qbc-ti
 their siblings — are computed values the component writes at run time, not design tokens. A
 consumer reads them but does not set them.
 
+Both requirements in this feature are about the shape of the package and the shape of the
+stylesheets, and neither is proved by looking at either. The repository reserves the shape
+of the codebase for the compiler and for review, so each obligation is proved through the
+symptom it produces when broken. A bundled rather than peer Angular yields a second runtime
+and an injector error, so a bare application that supplies its own Angular and bootstraps
+cleanly has proved the peer dependency. An injected outside service yields a null-injector
+failure in an application that provided nothing, so a grid that drags, resizes, and accepts
+a keyboard command in that application has proved its independence. And a hard-coded value
+is precisely the one that does not move when every token is redefined, so overriding the
+whole catalogue and finding no library default surviving proves the stylesheets carry none
+— wherever one might have hidden, and without reading a line of them.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirements. Each L2 requirement refines
