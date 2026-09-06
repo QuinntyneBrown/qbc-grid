@@ -62,6 +62,20 @@ the cost of a single layout pass. It is left simple rather than indexed, because
 measured budget holds without an index and a spatial index would be code the requirements
 do not need.
 
+The budget `L2-031` sets is a budget for the grid, and the criterion says so by fixing what
+the tiles hold: static content that neither animates nor updates. Without that condition the
+measurement would answer a different question every time it ran — sixty empty elements pass
+it trivially, and sixty live telemetry widgets fail it while the grid does nothing wrong.
+A number that moves with an unstated variable measures the variable.
+
+What the grid can promise is therefore bounded, and the bound is worth stating plainly. It
+touches two elements per frame however many tiles exist, and it leaves the resting tiles
+alone. It cannot make room for a host that re-renders sixty widgets on every telemetry tick;
+that work lands in the same frames, and no amount of care inside the grid recovers it. The
+projection seam is what leaves that cost where it can be fixed — in the host's components,
+which own their own change detection — rather than burying it inside a library that has no
+view of it.
+
 ## Requirements
 
 The feature realizes the following level-2 (L2) requirement. It refines a level-1 (L1)
