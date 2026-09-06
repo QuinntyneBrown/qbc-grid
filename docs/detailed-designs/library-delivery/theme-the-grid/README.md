@@ -82,7 +82,28 @@ The slice is a package shape, an entry point, and a token catalogue.
   of the colour, radius, shadow, or duration values `L2-034` holds to tokens.
 - **The token gallery** — the design system's static site, rendering every token beside the
   grid states that consume it, so a change to a token is reviewable before it reaches an
-  application.
+  application. It is also where the design system has behaviour worth testing. A token that
+  is deleted or misspelled does not fail loudly in a consumer: the grid's fallback takes
+  over and the page still looks reasonable, which is the point of the fallback and the
+  reason the defect would otherwise travel. A specification that opens the gallery and
+  asserts every token in the catalogue resolves to a value catches it at the source.
+
+The three groups above are what the grid reads, not the whole of what the design system
+owns. The design system holds the product's colour, spacing, type scale, and radius; the
+grid consumes the colour and metric tokens it needs and adds the expression tokens no other
+consumer would. Type is owned and unconsumed here, because the grid renders no text of its
+own — a tile's content, and its typography, belong to the host.
+
+Two directions matter and they are not symmetric. The design system carries no dependency on
+the application or on the grid. The front end depends on the design system, and it does so
+by loading the published token file rather than by holding a copy of the values: a copied
+set agrees with the source exactly until the first colour changes, and nothing in a build
+would report the disagreement. Depending on the file is what makes "the design system's copy
+is authoritative" true rather than aspirational.
+
+What the design system builds is therefore two artifacts from one source: the token file,
+published as a CSS package a consumer can load, and the gallery, deployed as its own static
+site.
 
 The grid's own layout custom properties — `--qbc-grid-column-width`, `--qbc-tile-x`, and
 their siblings — are computed values the component writes at run time, not design tokens. A
@@ -124,8 +145,9 @@ manifest supply the package to a consumer. Nothing flows the other way.
 
 ### Class structure
 
-The published surface is five exports. The token catalogue is three groups, and the
-stylesheet reads all of them.
+The published surface is five exports. The three token groups are the set the grid reads,
+and the stylesheet reads all of them; the design system owns more than this for consumers
+that are not the grid.
 
 ![Class diagram for distributing and theming the grid](diagrams/class-structure.png)
 
