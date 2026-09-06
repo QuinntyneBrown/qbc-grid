@@ -4,6 +4,8 @@
   [attr.data-qbc-last-layout]="lastLayout()"
 ></div>
 
+<button type="button" data-qbc-mutate-layout (click)="mutateLastLayout()">Mutate last layout</button>
+
 <qbc-grid
   [layout]="layout()"
   [columns]="columns"

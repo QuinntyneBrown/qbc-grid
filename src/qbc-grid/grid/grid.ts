@@ -4,11 +4,15 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Signal,
   computed,
   contentChild,
+  effect,
   inject,
   input,
+  linkedSignal,
   output,
+  untracked,
 } from '@angular/core';
 
 import { GridMode } from './grid-mode';
@@ -16,6 +20,7 @@ import { GridTile } from './grid-tile';
 import { GridTileTemplateDirective } from './grid-tile-template';
 import { GridWidthObserver } from './grid-width-observer';
 import { coerceGridOptions } from './coerce-grid-options';
+import { normalizeLayout } from './normalize-layout';
 
 /**
  * Arranges tiles on a cell-based grid. The layout reaches the grid as plain data and
@@ -58,13 +63,34 @@ export class GridComponent {
 
   protected readonly tileTemplate = contentChild(GridTileTemplateDirective);
 
-  /** The tiles the grid currently holds, in the order it received them. */
-  readonly tiles: typeof this.layout = this.layout;
-
   /** The metrics the grid renders with, derived from the configuration and the container. */
   readonly metrics = computed(() =>
     coerceGridOptions(this.columns(), this.rowHeight(), this.gap(), this.widthObserver.width()),
   );
+
+  /**
+   * The supplied layout, repaired. A fresh object every time the input or the column count
+   * changes, which is what lets the repair report belong to the layout that arrived rather
+   * than to a flag: two malformed layouts in a row are two repairs and two reports, and a
+   * boolean recording only that the last one needed repair cannot tell them apart.
+   */
+  private readonly repair = computed(() =>
+    normalizeLayout(this.layout(), this.metrics().columns),
+  );
+
+  /**
+   * The tiles the grid holds. A linked signal rather than a computed one, because it is
+   * read from two directions: a new layout from the host replaces it wholesale, and
+   * `commit` writes it directly, so an interaction, an add, and a remove each change it
+   * without a round trip through the host.
+   */
+  private readonly tileState = linkedSignal({
+    source: () => this.repair(),
+    computation: (repair) => repair.tiles,
+  });
+
+  /** Collaborators receive the tiles as a plain signal, so the write stays the grid's own. */
+  readonly tiles: Signal<readonly GridTile[]> = this.tileState.asReadonly();
 
   /**
    * The three grid properties carry lengths and the four tile properties carry unitless
@@ -93,5 +119,21 @@ export class GridComponent {
   constructor() {
     this.widthObserver.observe(this.host.nativeElement);
     inject(DestroyRef).onDestroy(() => this.widthObserver.disconnect());
+
+    // Repair is reported for the layout that needed it. The computation itself is pure and
+    // lazy, so the emission cannot happen there; this watches its result instead.
+    effect(() => {
+      const repair = this.repair();
+      if (repair.repaired) untracked(() => this.layoutChange.emit(this.snapshot(repair.tiles)));
+    });
+  }
+
+  /**
+   * A detached copy of the layout. Detaching is what keeps a host writing to what it
+   * received from reaching the grid's own state; the records stay ordinary and mutable,
+   * because freezing them would raise an error in the host's code instead.
+   */
+  private snapshot(tiles: readonly GridTile[]): GridTile[] {
+    return tiles.map((tile) => ({ ...tile }));
   }
 }

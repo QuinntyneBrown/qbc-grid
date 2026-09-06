@@ -44,4 +44,46 @@ export const layoutFixtures: Record<string, unknown> = {
 
   /** Five hundred records, the scale normalization completes without hanging. */
   'five-hundred': staticTiles(500),
+
+  /** A layout carrying every defect the ordered repair stages exist to correct. */
+  malformed: [
+    null,
+    7,
+    { x: 0, y: 0, cols: 2, rows: 1 },
+    { id: '   ', x: 0, y: 0, cols: 2, rows: 1 },
+    { id: 'clamped', x: -3, y: 'abc', cols: 40, rows: 0 },
+    { id: 'clamped', x: 6, y: 0, cols: 2, rows: 1 },
+    { id: 'limits', x: 0, y: 1, cols: 4, rows: 1, minCols: 8, maxCols: 2 },
+  ],
+
+  /** Two records claiming the same cells, so the later one is moved down. */
+  overlapping: [
+    { id: 'first', x: 0, y: 0, cols: 4, rows: 2, label: 'First' },
+    { id: 'second', x: 0, y: 0, cols: 4, rows: 2, label: 'Second' },
+  ],
+
+  /** A record beyond the rows the grid can represent, and one beside it. */
+  unrepresentable: [
+    { id: 'far', x: 0, y: 2 ** 53, cols: 2, rows: 1 },
+    { id: 'near', x: 4, y: 0, cols: 2, rows: 1 },
+  ],
+
+  /** A blocker declaring a billion rows, and a record that has to clear it. */
+  'billion-rows': [
+    { id: 'blocker', x: 0, y: 0, cols: 12, rows: 1_000_000_000 },
+    { id: 'after', x: 0, y: 0, cols: 12, rows: 1 },
+  ],
+
+  /** A duplicate id and nothing else wrong, so a repair moves no surviving tile. */
+  'duplicate-only': [
+    { id: 'alpha', x: 0, y: 0, cols: 3, rows: 2, label: 'Alpha' },
+    { id: 'bravo', x: 3, y: 0, cols: 3, rows: 2, label: 'Bravo' },
+    { id: 'alpha', x: 6, y: 0, cols: 3, rows: 2, label: 'Duplicate' },
+  ],
+
+  /** A clean layout carrying metadata that has to survive a round trip. */
+  metadata: [
+    { id: 'attitude', x: 0, y: 0, cols: 3, rows: 2, label: 'Attitude', minCols: 2, maxRows: 4 },
+    { id: 'plain', x: 3, y: 0, cols: 3, rows: 2 },
+  ],
 };

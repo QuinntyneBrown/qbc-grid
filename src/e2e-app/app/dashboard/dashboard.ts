@@ -42,9 +42,26 @@ export class DashboardPage {
   readonly emissions = signal(0);
   readonly lastLayout = signal('');
 
+  private received: readonly GridTile[] = [];
+
   onLayoutChange(layout: readonly GridTile[]): void {
+    this.received = layout;
     this.emissions.update((count) => count + 1);
     this.lastLayout.set(JSON.stringify(layout));
     this.service.save(layout);
+  }
+
+  /**
+   * `L2-023` asks that a host mutating a record it received leave the grid unaffected,
+   * which needs a host willing to try. The page performs the abuse rather than the
+   * specification assuming nobody will.
+   */
+  mutateLastLayout(): void {
+    const records = this.received as GridTile[];
+    records.push({ id: 'intruder', x: 0, y: 0, cols: 12, rows: 12 });
+    for (const record of records) {
+      record.x = 99;
+      record.cols = 99;
+    }
   }
 }

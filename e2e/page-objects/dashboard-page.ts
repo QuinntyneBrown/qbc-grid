@@ -112,6 +112,18 @@ export class DashboardPageObject {
     );
   }
 
+  /** Drives the page into mutating the last layout the grid handed it. */
+  async mutateLastLayout(): Promise<void> {
+    await this.page.locator('[data-qbc-mutate-layout]').click();
+  }
+
+  async lastLayout(): Promise<unknown> {
+    const raw = await this.page
+      .locator('[data-qbc-last-layout]')
+      .getAttribute('data-qbc-last-layout');
+    return raw === null || raw === '' ? null : JSON.parse(raw);
+  }
+
   async emissions(): Promise<number> {
     const value = await this.page.locator('[data-qbc-emissions]').getAttribute('data-qbc-emissions');
     return Number(value);
