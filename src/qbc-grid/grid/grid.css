@@ -1,3 +1,16 @@
+/* Carried by the instructions and the two live regions: present to assistive technology,
+   absent from the layout, and never clipped out of existence by a zero-size box. */
+.qbc-grid__hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 :host {
   display: block;
   position: relative;

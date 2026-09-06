@@ -14,19 +14,21 @@
   </button>
 </div>
 
-<qbc-grid
-  [layout]="layout()"
-  [columns]="columns"
-  [rowHeight]="rowHeight"
-  [gap]="gap"
-  [mode]="mode()"
-  (layoutChange)="onLayoutChange($event)"
->
-  <div *qbcGridTile="let tile" class="widget">
-    <span class="widget__label">{{ tile.label ?? tile.id }}</span>
-    <button type="button" data-qbc-lock-toggle (click)="toggleLock(tile.id)">
-      {{ tile.locked ? 'Unlock' : 'Lock' }}
-    </button>
-    <button type="button" data-qbc-remove-tile (click)="onRemoveTile(tile.id)">Remove</button>
-  </div>
-</qbc-grid>
+@for (grid of grids; track grid) {
+  <qbc-grid
+    [layout]="layout()"
+    [columns]="columns"
+    [rowHeight]="rowHeight"
+    [gap]="gap"
+    [mode]="mode()"
+    (layoutChange)="onLayoutChange($event)"
+  >
+    <div *qbcGridTile="let tile" class="widget">
+      <span class="widget__label">{{ tile.label ?? tile.id }}</span>
+      <button type="button" data-qbc-lock-toggle (click)="toggleLock(tile.id)">
+        {{ tile.locked ? 'Unlock' : 'Lock' }}
+      </button>
+      <button type="button" data-qbc-remove-tile (click)="onRemoveTile(tile.id)">Remove</button>
+    </div>
+  </qbc-grid>
+}

@@ -70,6 +70,15 @@ export class DashboardPage {
     );
   }
 
+  /**
+   * How many grids the page renders. `L2-029` asks that two grids on one page describe
+   * themselves rather than each other, which one grid cannot answer.
+   */
+  readonly grids = Array.from(
+    { length: Math.max(1, Number(this.params.get('grids') ?? 1)) },
+    (_, index) => index,
+  );
+
   readonly columns = numberParam(this.params, 'columns');
   readonly rowHeight = numberParam(this.params, 'rowHeight');
   readonly gap = numberParam(this.params, 'gap');

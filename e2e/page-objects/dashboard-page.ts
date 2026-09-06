@@ -9,6 +9,8 @@ export interface DashboardOptions {
   columns?: number;
   rowHeight?: number;
   gap?: number;
+  /** How many grids the page renders, so two on one page can be told apart. */
+  grids?: number;
 }
 
 const ROUTES = {
@@ -30,6 +32,7 @@ export class DashboardPageObject {
     if (options.columns !== undefined) params.set('columns', String(options.columns));
     if (options.rowHeight !== undefined) params.set('rowHeight', String(options.rowHeight));
     if (options.gap !== undefined) params.set('gap', String(options.gap));
+    if (options.grids !== undefined) params.set('grids', String(options.grids));
 
     const route = ROUTES[options.tokens ?? 'default'];
     const query = params.toString();
@@ -37,12 +40,13 @@ export class DashboardPageObject {
     await this.grid.waitFor({ state: 'attached' });
   }
 
+  /** The first grid on the page. A page rendering two of them names them apart explicitly. */
   get grid(): Locator {
-    return this.page.locator('[data-qbc-grid]');
+    return this.page.locator('[data-qbc-grid]').first();
   }
 
   tile(id: string): Locator {
-    return this.page.locator(`[data-qbc-tile="${id}"]`);
+    return this.page.locator(`[data-qbc-tile="${id}"]`).first();
   }
 
   get tiles(): Locator {
@@ -114,12 +118,18 @@ export class DashboardPageObject {
 
   async enterEditMode(): Promise<void> {
     await this.page.locator('[data-qbc-mode-toggle]').click();
-    await this.page.locator('[data-qbc-grid][data-mode="edit"]').waitFor({ state: 'attached' });
+    await this.page
+      .locator('[data-qbc-grid][data-mode="edit"]')
+      .first()
+      .waitFor({ state: 'attached' });
   }
 
   async leaveEditMode(): Promise<void> {
     await this.page.locator('[data-qbc-mode-toggle]').click();
-    await this.page.locator('[data-qbc-grid][data-mode="live"]').waitFor({ state: 'attached' });
+    await this.page
+      .locator('[data-qbc-grid][data-mode="live"]')
+      .first()
+      .waitFor({ state: 'attached' });
   }
 
   async addTile(): Promise<void> {
@@ -190,6 +200,87 @@ export class DashboardPageObject {
       if (id !== null) visited.push(id);
     }
     return visited;
+  }
+
+  async focusTile(id: string): Promise<void> {
+    await this.tile(id).focus();
+  }
+
+  /** The text the most recently written live region holds. */
+  async announcement(): Promise<string> {
+    const texts = await this.page
+      .locator('[data-qbc-announcer]')
+      .evaluateAll((regions) => regions.map((region) => region.textContent?.trim() ?? ''));
+    return texts.find((text) => text !== '') ?? '';
+  }
+
+  /**
+   * Counts every write that a screen reader would speak: a change to a region's text that
+   * leaves it non-empty. Clearing the other region is what makes a repeated sentence a
+   * change rather than silence, and it is not itself an announcement.
+   */
+  async watchAnnouncements(): Promise<void> {
+    await this.page.evaluate(() => {
+      const store = window as unknown as { __qbcSpoken: string[] };
+      store.__qbcSpoken = [];
+      for (const region of document.querySelectorAll('[data-qbc-announcer]')) {
+        new MutationObserver(() => {
+          const text = region.textContent?.trim() ?? '';
+          if (text !== '') store.__qbcSpoken.push(text);
+        }).observe(region, { childList: true, characterData: true, subtree: true });
+      }
+    });
+  }
+
+  async announcementCount(): Promise<number> {
+    return this.page.evaluate(
+      () => (window as unknown as { __qbcSpoken: string[] }).__qbcSpoken.length,
+    );
+  }
+
+  /**
+   * Holds an arrow key down for several commands and releases it once.
+   *
+   * A discrete press is its own run and is announced on its own; the criterion is about a
+   * key held long enough for several moves to commit, which is one keydown, the repeats the
+   * keyboard sends, and one keyup.
+   */
+  async holdArrow(key: string, presses: number): Promise<void> {
+    await this.page.keyboard.down(key);
+    for (let repeat = 1; repeat < presses; repeat += 1) {
+      await this.page.evaluate((held) => {
+        document.activeElement?.dispatchEvent(
+          new KeyboardEvent('keydown', { key: held, bubbles: true, repeat: true }),
+        );
+      }, key);
+    }
+    await this.page.keyboard.up(key);
+  }
+
+  /** Waits out the interval a run of commands stays open with no further command. */
+  async waitForRunToSettle(): Promise<void> {
+    await this.page.waitForTimeout(500);
+  }
+
+  /** The accessible name a tile carries, which is what assistive technology reads. */
+  async accessibleNameOf(id: string): Promise<string | null> {
+    return this.tile(id).getAttribute('aria-label');
+  }
+
+  /** The text a tile's description resolves to, followed through aria-describedby. */
+  async descriptionOf(id: string): Promise<string> {
+    return this.tile(id).evaluate((element) => {
+      const target = element.getAttribute('aria-describedby');
+      if (target === null) return '';
+      return element.ownerDocument.getElementById(target)?.textContent?.trim() ?? '';
+    });
+  }
+
+  /** The instruction element each grid on the page points its tiles at. */
+  async instructionIdsPerGrid(): Promise<(string | null)[]> {
+    return this.page.locator('[data-qbc-grid]').evaluateAll((grids) =>
+      grids.map((grid) => grid.querySelector('[data-qbc-tile]')?.getAttribute('aria-describedby') ?? null),
+    );
   }
 
   /** Whether the focused tile is drawing the focus indicator. */

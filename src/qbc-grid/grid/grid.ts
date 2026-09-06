@@ -14,6 +14,7 @@ import {
   input,
   linkedSignal,
   output,
+  signal,
   untracked,
 } from '@angular/core';
 
@@ -29,8 +30,12 @@ import { GridInteraction } from './grid-interaction';
 import { GridInteractionKind } from './grid-interaction-kind';
 import { GridPointerSession } from './grid-pointer-session';
 import { GridShadow } from './grid-shadow';
+import { GridCommandOutcome } from './grid-command-outcome';
+import { accessibleNameOf } from './accessible-name-of';
+import { announcementFor } from './announcement-for';
 import { canPlace } from './can-place';
 import { cellAt } from './cell-at';
+import { gridKeyboardCandidate } from './grid-keyboard-candidate';
 import { clampSpan } from './clamp-span';
 import { spanAt } from './span-at';
 import { clampTile } from './clamp-tile';
@@ -40,11 +45,22 @@ import { findFreeCell } from './find-free-cell';
 import { layoutsEqual } from './layouts-equal';
 import { normalizeLayout } from './normalize-layout';
 
+/** Instruction elements are identified per grid, so two grids on a page describe themselves. */
+let gridInstances = 0;
+const nextGridId = (): number => (gridInstances += 1);
+
 /**
  * Where a press belongs to the content rather than to the grid. A control, a field, an
  * editable region, or a link owns its own input, and a press landing on one starts no
  * gesture and suppresses nothing.
  */
+/**
+ * How long a run of keyboard commands stays open with no further command. It is an
+ * interval the component keeps rather than a motion token, so a request for reduced motion
+ * shortens the animations and leaves the run alone.
+ */
+const SETTLE_MS = 400;
+
 const INTERACTIVE_DESCENDANTS =
   'button, input, select, textarea, a[href], [contenteditable], [role="button"], [role="slider"], [role="textbox"]';
 
@@ -61,6 +77,8 @@ const INTERACTIVE_DESCENDANTS =
   host: {
     'data-qbc-grid': '',
     tabindex: '-1',
+    role: 'group',
+    'aria-roledescription': 'dashboard grid',
     '[attr.data-mode]': 'mode()',
     '[attr.data-empty]': 'rowCount() === 0 ? "" : null',
     '[style.--qbc-grid-columns]': 'metrics().columns',
@@ -84,6 +102,17 @@ export class GridComponent {
     settle: (cell, tileId) => this.settleGesture(cell, tileId),
   });
   private dragged: HTMLElement | null = null;
+  private run: {
+    tileId: string;
+    kind: GridInteractionKind;
+    cell: GridCell;
+    outcome: GridCommandOutcome;
+  } | null = null;
+  private runTimer: ReturnType<typeof setTimeout> | null = null;
+  private announcedSlot = 1;
+
+  /** The identifier of this grid's own instructions, so two grids on a page differ. */
+  protected readonly instructionsId = `qbc-grid-instructions-${nextGridId()}`;
 
   readonly layout = input.required<readonly GridTile[]>();
   readonly columns = input(12);
@@ -148,6 +177,12 @@ export class GridComponent {
     [...this.tiles()].sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id)),
   );
 
+  /** The pair of polite live regions, written alternately with the region beside cleared. */
+  protected readonly announcements = signal<readonly [string, string]>(['', '']);
+
+  /** Whether a run of keyboard commands is still open, which is what keeps the overlay up. */
+  protected readonly settling = signal(false);
+
   /** The rectangle a release would take, and whether those cells are free. */
   readonly shadow = computed<GridShadow | null>(() => this.session.interaction()?.shadow ?? null);
 
@@ -155,7 +190,9 @@ export class GridComponent {
    * The overlay is shown for the duration of an interaction and removed when it ends,
    * whether the interaction committed or reverted.
    */
-  readonly overlayVisible = computed(() => this.session.interaction() !== null);
+  readonly overlayVisible = computed(
+    () => this.session.interaction() !== null || this.settling(),
+  );
 
   /** Whether the grid offers interaction at all. */
   readonly editable = computed(() => this.mode() === 'edit');
@@ -178,22 +215,126 @@ export class GridComponent {
     return this.isInteractive(tile) ? 0 : -1;
   }
 
+  /** The name assistive technology reads for a tile. */
+  protected nameOf(tile: GridTile): string {
+    return accessibleNameOf(tile);
+  }
+
   /** Begins a press on a tile, which becomes a drag once the pointer has travelled far enough. */
-  protected onPointerDown(tile: GridTile, event: PointerEvent): void {
-    if (!this.isInteractive(tile)) return;
+  protected onPointerDown(bound: GridTile, event: PointerEvent): void {
+    if (!this.isInteractive(bound)) return;
     // A press that lands on a control or a field belongs to that descendant, not the grid.
     if (this.ownsPress(event) === false) return;
-    this.session.press('move', tile, event);
+    const tile = this.tileState().find((held) => held.id === bound.id);
+    if (tile !== undefined) this.session.press('move', tile, event);
+  }
+
+  /**
+   * Runs one keyboard command, and keeps the run it belongs to open.
+   *
+   * The key is consumed only while the tile element itself holds focus, so an arrow inside
+   * a projected field moves the caret and an arrow inside a slider changes its value, and
+   * the tile stays where it is. A pointer gesture in flight owns the tile, so a command
+   * arriving during one is refused rather than racing it.
+   */
+  protected onKeyDown(bound: GridTile, event: KeyboardEvent): void {
+    if (!this.isInteractive(bound) || this.session.isActive) return;
+    if (event.target !== this.tileElement(bound.id)) return;
+
+    // The template binding holds the tile as the last render saw it, and a commit writes
+    // state before that render happens. A second command arriving inside the same frame
+    // would otherwise propose the cell the first one already took, find it free because a
+    // tile never blocks itself, and commit a change of nothing.
+    const tile = this.tileState().find((held) => held.id === bound.id);
+    if (tile === undefined) return;
+
+    const columns = this.metrics().columns;
+    const candidate = gridKeyboardCandidate(event, tile, this.tileState(), columns);
+    if (candidate === null) return;
+    event.preventDefault();
+
+    const { kind, cell } = candidate;
+    const unchanged =
+      cell.x === tile.x && cell.y === tile.y && cell.cols === tile.cols && cell.rows === tile.rows;
+
+    let outcome: GridCommandOutcome;
+    if (unchanged) {
+      outcome = kind === 'resize' ? 'blocked-limit' : 'blocked-bounds';
+    } else if (!canPlace(this.tileState(), cell, columns, tile.id)) {
+      outcome = 'blocked-occupied';
+    } else {
+      outcome = 'accepted';
+      this.commit(
+        this.tileState().map((held) =>
+          held.id === tile.id ? { ...held, ...cell } : held,
+        ),
+      );
+      afterNextRender(
+        { read: () => this.tileElement(tile.id)?.scrollIntoView({ block: 'nearest' }) },
+        { injector: this.injector },
+      );
+    }
+
+    this.openRun(tile.id, kind, outcome === 'accepted' ? cell : tile, outcome);
+  }
+
+  /**
+   * Opens or extends the run this command belongs to.
+   *
+   * A held arrow commits at the keyboard's repeat rate, and a polite region queues rather
+   * than interrupts, so announcing each step would read a backlog of positions the tile
+   * passed through minutes after it stopped at the last of them. A second command extends
+   * the window rather than opening another, so a run reveals the grid once, hides it once,
+   * and is announced once.
+   */
+  private openRun(
+    tileId: string,
+    kind: GridInteractionKind,
+    cell: GridCell,
+    outcome: GridCommandOutcome,
+  ): void {
+    this.run = { tileId, kind, cell, outcome };
+    this.settling.set(true);
+    if (this.runTimer !== null) clearTimeout(this.runTimer);
+    this.runTimer = setTimeout(() => this.closeRun(), SETTLE_MS);
+  }
+
+  /** Closes a run, whether the key was released, focus was lost, or the interval passed. */
+  protected closeRun(): void {
+    if (this.runTimer !== null) clearTimeout(this.runTimer);
+    this.runTimer = null;
+    this.settling.set(false);
+
+    const run = this.run;
+    this.run = null;
+    if (run === null) return;
+
+    const tile = this.tileState().find((held) => held.id === run.tileId);
+    const resting = tile === undefined ? run.cell : tile;
+    const text = announcementFor(
+      accessibleNameOf(tile ?? { id: run.tileId, ...run.cell }),
+      run.kind,
+      run.kind === 'move' ? resting : run.cell,
+      run.outcome,
+    );
+
+    // A live region speaks when its contents change, and alternation alone covers two
+    // repeats: the third write returns to the region that received the first, which
+    // already holds that sentence, so nothing is spoken. Clearing the region not being
+    // written makes the next write to it a change whatever the text says.
+    this.announcedSlot = this.announcedSlot === 0 ? 1 : 0;
+    this.announcements.set(this.announcedSlot === 0 ? [text, ''] : ['', text]);
   }
 
   /**
    * Begins a resize. The press stops here rather than reaching the tile beneath it, so a
    * press on the handle starts a resize and never a move.
    */
-  protected onHandlePointerDown(tile: GridTile, event: PointerEvent): void {
-    if (!this.isInteractive(tile)) return;
+  protected onHandlePointerDown(bound: GridTile, event: PointerEvent): void {
+    if (!this.isInteractive(bound)) return;
     event.stopPropagation();
-    this.session.press('resize', tile, event);
+    const tile = this.tileState().find((held) => held.id === bound.id);
+    if (tile !== undefined) this.session.press('resize', tile, event);
   }
 
   /**
@@ -345,6 +486,7 @@ export class GridComponent {
       this.widthObserver.disconnect();
       this.scheduler.stop();
       this.session.destroy();
+      if (this.runTimer !== null) clearTimeout(this.runTimer);
     });
 
     // Repair is reported for the layout that needed it. The computation itself is pure and

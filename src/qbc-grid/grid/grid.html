@@ -15,17 +15,47 @@
   ></div>
 }
 
+<!--
+  One instruction element for the grid rather than one per tile, because sixty copies of
+  the same sentence are sixty nodes carrying no extra meaning. Announcing a result is not
+  the same as offering a command: without this a screen-reader user reaches a tile, hears
+  its name, and has no way to learn that the arrow keys do anything at all.
+-->
+<p class="qbc-grid__hidden" [id]="instructionsId">
+  Arrow keys move this tile one cell. Control with an arrow moves it past an obstruction.
+  Shift with an arrow resizes it.
+</p>
+
+<!--
+  Two polite regions, written alternately with the other cleared. A live region speaks when
+  its contents change, so a repeated outcome written to a region that already holds it says
+  nothing at all.
+-->
+<p class="qbc-grid__hidden" data-qbc-announcer aria-live="polite" aria-atomic="true">
+  {{ announcements()[0] }}
+</p>
+<p class="qbc-grid__hidden" data-qbc-announcer aria-live="polite" aria-atomic="true">
+  {{ announcements()[1] }}
+</p>
+
 @for (tile of orderedTiles(); track tile.id) {
   <div
     class="qbc-grid__tile"
+    role="group"
+    aria-roledescription="dashboard tile"
     [attr.data-qbc-tile]="tile.id"
     [attr.data-locked]="tile.locked ? '' : null"
     [attr.tabindex]="tabIndexOf(tile)"
+    [attr.aria-label]="nameOf(tile)"
+    [attr.aria-describedby]="isInteractive(tile) ? instructionsId : null"
     [style.--qbc-tile-x]="tile.x"
     [style.--qbc-tile-y]="tile.y"
     [style.--qbc-tile-cols]="tile.cols"
     [style.--qbc-tile-rows]="tile.rows"
     (pointerdown)="onPointerDown(tile, $event)"
+    (keydown)="onKeyDown(tile, $event)"
+    (keyup)="closeRun()"
+    (blur)="closeRun()"
   >
     <ng-container
       [ngTemplateOutlet]="tileTemplate()?.templateRef ?? null"

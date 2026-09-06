@@ -81,6 +81,12 @@ export const layoutFixtures: Record<string, unknown> = {
     { id: 'alpha', x: 6, y: 0, cols: 3, rows: 2, label: 'Duplicate' },
   ],
 
+  /** Tiles with no usable label, so the fallback to the id is what names them. */
+  'blank-labels': [
+    { id: 'nameless', x: 0, y: 0, cols: 3, rows: 2 },
+    { id: 'blank', x: 3, y: 0, cols: 3, rows: 2, label: '   ' },
+  ],
+
   /** A clean layout carrying metadata that has to survive a round trip. */
   metadata: [
     { id: 'attitude', x: 0, y: 0, cols: 3, rows: 2, label: 'Attitude', minCols: 2, maxRows: 4 },
