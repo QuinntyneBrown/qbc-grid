@@ -41,6 +41,11 @@ The budget is held by one small class and one cached record, used by every gestu
   top in client coordinates, the column width, the row height, the gap, and the offset
   between the pointer and the tile's top-left corner. `GridPointerSession` holds one for the
   life of a gesture.
+  It is refreshed on a container resize and at no other time, described in
+  [`fill-the-desktop-viewport`](../fill-the-desktop-viewport/). Measuring once is the rule
+  for pointer events, which arrive by the dozen in a frame; a resize arrives rarely and
+  invalidates the cached geometry outright, so holding the stale numbers would trade a
+  correct drop for a measurement nobody would have noticed.
 - **`cellAt`** and **`canPlace`** — pure functions over numbers and cell rectangles. Neither
   touches an element, which is what makes the per-event work a few arithmetic operations
   and an overlap scan rather than a layout pass.

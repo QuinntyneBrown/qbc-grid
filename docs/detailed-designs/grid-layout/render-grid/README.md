@@ -126,6 +126,12 @@ a leak: not by forgetting teardown, but by adding a fifth thing to a list nobody
 timer that survives its component writes to a signal no view is reading, and in a test suite
 it carries that write into the specification that follows.
 
+The grid host carries `tabindex` of `-1`, which keeps it out of the tab order and still lets
+it receive focus programmatically. `L2-022` sends focus there when the last tile is removed,
+and a host without that attribute would refuse it silently: focus would fall to the document
+and the operator would lose their place, which is the outcome the requirement exists to
+prevent.
+
 The grid host carries the computed height and does not clip: an absolutely positioned tile
 sits inside a host whose height follows the lowest occupied row, with no `overflow` rule
 hiding what extends past it. A tile moved to row 40 therefore lengthens the host and the

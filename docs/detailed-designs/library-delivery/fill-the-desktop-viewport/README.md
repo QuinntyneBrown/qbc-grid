@@ -60,6 +60,20 @@ supports a host that pads its container — that is why
 origin to the content box — and the demonstration page declines to, so a test never has to
 subtract anything to know what it measured.
 
+A width change during a gesture is the one case where two decisions taken separately meet.
+`GridGestureCache` measures the grid rectangle and the column width once when a gesture
+starts, so that no pointer event costs a layout read; the metrics recompute whenever the
+container width changes. A window resized mid-drag, or a side panel opening beside the
+grid, leaves the cache describing a grid that no longer exists — the tiles have already
+moved under CSS while the snap arithmetic still divides by the old column width, so the
+shadow marks one cell and the tile lands in another.
+
+The cache is therefore refreshed when the observer reports a new width, and only then. That
+costs a measurement per resize, which is rare, and none per pointer move, which is the
+budget `L2-031` actually protects: it forbids a layout read for a pointer event, not a read
+for a resize event. Cancelling the gesture instead would be safe and would take the drag
+away from an operator who did nothing wrong.
+
 The observation cannot feed itself. What the observer reports is width; what the grid writes
 back is `--qbc-grid-column-width`, which moves tile edges horizontally. The grid's height
 comes from `rowCount`, which is derived from tile geometry alone and never from width, so a
@@ -74,7 +88,7 @@ requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-030` | `L1-011` | The grid shall keep the same column count and fill its container from 1024 px to 2560 px of container width, shall not emit a layout when the container width changes, and shall not collapse or reflow at any width. |
+| `L2-030` | `L1-011` | The grid shall keep the same column count and fill its container from 1024 px to 2560 px of container width, shall not emit a layout when the container width changes, and shall not collapse or reflow at any width, and shall re-measure a gesture in flight when that width changes. |
 
 ## Diagrams
 
