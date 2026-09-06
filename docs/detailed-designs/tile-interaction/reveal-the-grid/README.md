@@ -67,6 +67,20 @@ The overlay is one element, one derived signal, and a stylesheet rule.
   tiles by exactly the padding, which is the kind of defect that looks like a rounding error
   and is not one.
 
+  Painting with a background is also what puts the overlay at risk on the one platform this
+  library targets. An operating system forcing its own colours removes background images
+  outright, so the cell structure would not be there at all for an operator running a high
+  contrast desktop — the accommodation is common on the workstations this grid is built for,
+  and `L2-019` asks for the overlay during every interaction without exception. The overlay
+  therefore declines the forced-colour substitution and draws its lines in the system's own
+  text colour, so the structure survives and still arrives in the palette the operator chose
+  rather than in the library's.
+
+  What survives without help is worth naming beside it. The shadow's fill is replaced in that
+  mode and its border is kept and recoloured, so a valid target and an invalid one stay apart
+  on the solid and dashed borders alone. The signal an operator cannot afford to lose
+  degrades gracefully; the one that assists it is the one that needed the rule.
+
   Two consequences follow from painting with gradients rather than elements, and both are
   accepted rather than solved. Column width is fractional, so the lines land on fractional
   device pixels and rasterize a little unevenly at some widths; the overlay is a guide for
@@ -88,7 +102,7 @@ requirement, cited by identifier.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-019` | `L1-006` | The grid shall show the cell overlay for the duration of a move or resize, shall remove it whether the interaction commits or reverts, shall paint it behind every tile, and shall not let it intercept pointer events. |
+| `L2-019` | `L1-006` | The grid shall show the cell overlay for the duration of a move or resize, shall remove it whether the interaction commits or reverts, shall paint it behind every tile, and shall not let it intercept pointer events, and shall remain visible where the operating system forces its own colours. |
 
 ## Diagrams
 
